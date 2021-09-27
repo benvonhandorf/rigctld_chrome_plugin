@@ -1,0 +1,9 @@
+{
+    "name": "com.skyironstudio.rigctld_native_messaging_host",
+    "description": "rigctld Messaging Interface",
+    "path": "/Users/benvh/projects/rigctld_chrome_plugin/host/native_host.py",
+    "type": "stdio",
+    "allowed_origins": [
+      "chrome-extension://kgmkcaghicookocgkkplikdjdbbphkgk/"
+    ]
+  }
