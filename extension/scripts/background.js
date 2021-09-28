@@ -1,9 +1,19 @@
 
 console.log("Background setup");
 
+let rig_configuration = {
+    "name": "FT-891",
+    "type": "rigctld",
+    "config": {
+        "host": "localhost",
+        "port": 4532
+    }
+}
+
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         console.log("Control request: ");
+        request.rig = rig_configuration;
         console.log(request);
 
         try {

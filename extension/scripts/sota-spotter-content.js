@@ -1,32 +1,23 @@
 
 let event_handler_debounce = null;
 
-let pota_frequency_regex = /(?<frequency>\d+(?:.?\d+)?)\s*(?<units>[k]?)Hz\s*(?:\((?<mode>\w+)\))?/;
+let sota_frequency_regex = /\s*(?<frequency>\d+(?:.?\d+)?)\s*(?:(?<mode>\w+))?/;
 
 let handle_click = (evt) => {
-    let card = evt.srcElement.closest(".v-card");
+    let card = evt.srcElement.closest(".row");
 
-    let frequency_text = card.children[2].children[2].innerText;
+    let frequency_text = card.children[2].innerText;
 
-    let match = frequency_text.match(pota_frequency_regex);
+    let match = frequency_text.match(sota_frequency_regex);
 
     let frequency = parseFloat(match.groups.frequency);
 
-    if(match.groups.units === "k") {
-        frequency = frequency * 1000;
-    } else if(match.groups.units === "M") {
-        frequency = frequency * 1000000;
-    }
-
-    mode = match.groups.mode
-
-    if(mode == null) {
-        mode = "SSB"
-    }
+    //SOTAWatch does all requencies in MHz.  As is tradition.
+    frequency = frequency * 1000000;
 
     let request = {
         frequency: frequency,
-        mode: mode
+        mode: match.groups.mode
     }
 
     console.log(request);
@@ -34,15 +25,15 @@ let handle_click = (evt) => {
 }
 
 let perform_update = () => {
-    let cards = document.getElementsByClassName("v-card");
+    let cards = document.getElementById("ngb-tab-0-panel").getElementsByClassName("row");
 
     console.log("Updating dom:" + cards.length);
 
     for(let card of cards) {
-        if(card.children[2] == null || card.children[2].children[2] == null) {
+        if(card.children.length < 3) {
             continue;
         }
-        let frequency_entry = card.children[2].children[2];
+        let frequency_entry = card.children[2];
 
         frequency_entry.removeEventListener("click", handle_click);
 
@@ -70,7 +61,7 @@ let enqueue_update = (evt) => {
 }
 
 let setup = () => {
-    let main_div = document.getElementsByClassName("v-main")[0]
+    let main_div = document.getElementById("ngb-tab-0-panel")
 
     if(!main_div) {
         console.log("Unable to setup monitor due to missing main content section")

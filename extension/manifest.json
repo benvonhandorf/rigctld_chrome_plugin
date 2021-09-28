@@ -15,6 +15,11 @@
         "matches": ["https://pota.app/"],
         "run_at": "document_idle",
         "js": ["scripts/pota-spotter-content.js"]
+      },
+      {
+        "matches": ["https://sotawatch.sota.org.uk/en/"],
+        "run_at": "document_idle",
+        "js": ["scripts/sota-spotter-content.js"]
       }
     ]
 }
