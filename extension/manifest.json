@@ -3,7 +3,7 @@
     "description": "Sets radio frequnecies by clicking on spots",
     "version": "1.0",
     "manifest_version": 3,
-    "permissions": ["nativeMessaging"],
+    "permissions": ["nativeMessaging", "clipboardWrite"],
     "host_permissions": [
         "https://pota.app/#/"
     ],

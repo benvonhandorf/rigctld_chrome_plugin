@@ -16,6 +16,7 @@ let handle_click = (evt) => {
     frequency = frequency * 1000000;
 
     let request = {
+        type: "control",
         frequency: frequency,
         mode: match.groups.mode
     }
