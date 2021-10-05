@@ -19,7 +19,7 @@ var rigs = [
     }
 ]
 
-var rig_configuration = rigs[1];
+var rig_configurations = [rigs[1]];
 
 var spots_by_program = {};
 
@@ -63,19 +63,21 @@ var alerts_by_program = {
 }
 
 let handle_control_request = (request) => {
-    console.log("Control request: ");
-    request.rig = rig_configuration;
-    console.log(request);
+    for(rig_configuration of rig_configurations) {
+        console.log("Control request: ");
+        request.rig = rig_configuration;
+        console.log(request);
 
-    try {
-        chrome.runtime.sendNativeMessage('com.skyironstudio.rigctld_native_messaging_host',
-            request,
-            function (response) {
-                console.log("Received");
-                console.log(response);
-            });
-    } catch(e) {
-        console.log(e);
+        try {
+            chrome.runtime.sendNativeMessage('com.skyironstudio.rigctld_native_messaging_host',
+                request,
+                function (response) {
+                    console.log("Received");
+                    console.log(response);
+                });
+        } catch(e) {
+            console.log(e);
+        }
     }
 }
 
