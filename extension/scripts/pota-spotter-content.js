@@ -12,7 +12,7 @@ let parse_card_data = (card) => {
 
     let frequency_text = card.children[2]?.children[2]?.innerText;
 
-    let match = frequency_text.match(pota_frequency_regex);
+    let match = frequency_text?.match(pota_frequency_regex);
 
     let frequency = parseFloat(match?.groups?.frequency || "0");
 
@@ -84,12 +84,16 @@ let perform_update = () => {
             continue;
         }
 
-        if(card.children[2] != null && card.children[2].children[2] == null) {
+        if(card.children[2] != null && card.children[2].children[2] != null) {
             let frequency_entry = card.children[2].children[2];
 
             frequency_entry.removeEventListener("click", frequency_click);
 
             frequency_entry.addEventListener("click", frequency_click)
+
+            if(!frequency_entry.classList.contains("frequency_entry")) {
+                frequency_entry.classList.add("frequency_entry");
+            }
         }
 
         spots.push(spot_data)

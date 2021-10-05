@@ -39,6 +39,10 @@ let perform_update = () => {
         frequency_entry.removeEventListener("click", handle_click);
 
         frequency_entry.addEventListener("click", handle_click)
+
+        if(!frequency_entry.classList.contains("frequency_entry")) {
+            frequency_entry.classList.add("frequency_entry");
+        }
     }
 
     if(event_handler_debounce) {

@@ -4,6 +4,7 @@ import sys
 import struct
 import json
 from rigctld_connection import RigctldConnection
+from gqrx_connection import GqrxConnection
 
 ## Largely gleaned/copied/inspired from: https://github.com/SphinxKnight/webextensions-examples/blob/master/native-messaging/app/ping_pong.py
 
@@ -39,43 +40,50 @@ def ssb_mode_from_frequency(frequency):
 
 mode_lookup = {
     "FT8": {"mode": lambda frequency: "PKTUSB", "passband": 3000},
-    "CW": {"mode": lambda frequency: "CW", "passband": 500},
-    "SSB": {"mode": ssb_mode_from_frequency, "passband": 3000},
+    "CW": {"mode": lambda frequency: "CWU", "passband": 500},
+    "SSB": {"mode": ssb_mode_from_frequency, "passband": 2600},
 }
+
+def get_rig_connection(rig_info):
+    rig_config = rig_info["config"]
+
+    if rig_info["type"] == "rigctrld":
+        rig_connection = RigctldConnection(rig_config["host"], rig_config["port"])
+    else:
+        rig_connection = GqrxConnection(rig_config["host"], rig_config["port"])
+
+    return rig_connection
 
 def process_message(message):
     with open("info.log", "a") as log:
         log.write(json.dumps(message, sort_keys=True, indent=4))
         log.write('\n')
 
-        if message["rig"]["type"] == "rigctld":
-            rig_config = message["rig"]["config"]
+        rig_connection = get_rig_connection(message["rig"])
 
-            log.write(f'rigctld: {rig_config["host"]} {rig_config["port"]}')
+        frequency = message["frequency"]
+        raw_mode = message["mode"].upper()
 
-            frequency = message["frequency"]
-            raw_mode = message["mode"].upper()
+        mapped_mode = mode_lookup.get(raw_mode)
 
-            mapped_mode = mode_lookup.get(raw_mode)
+        mode_string = mapped_mode["mode"](frequency)
+        passband = mapped_mode["passband"]
+    
+        rig_connection.connect()
 
-            mode_string = mapped_mode["mode"](frequency)
-            passband = mapped_mode["passband"]
+        # Mode gets set first so that the frequency is set properly when switching
+        # to/from CW
+        result = rig_connection.set_mode(mode_string, passband)
+        log.write(f'rigctld: {mode_string} {passband} {result}')
 
-            log.write(f'Setting {frequency} {mode_string} {passband}')
-            
-            rig_connection = RigctldConnection(rig_config["host"], rig_config["port"])
-            rig_connection.connect()
+        result = rig_connection.set_frequency(frequency)
+        log.write(f'rigctld: {frequency} {result}')
 
-            rig_connection.set_frequency(frequency)
-            rig_connection.set_mode(mode_string, passband)
+        result = rig_connection.get_radio_state()
 
-            result = rig_connection.get_radio_state()
+        rig_connection.disconnect()
 
-            rig_connection.disconnect()
-
-            send_message(result)
-        else:
-            send_message({"nack": False})
+        send_message(result)
 
 while True:
     message = get_message()
@@ -83,11 +91,11 @@ while True:
 #     "frequency": 14295000,
 #     "mode": "SSB",
 #     "rig": {
-#         "name": "FT-891",
-#         "type": "rigctld",
+#         "name": "Gqrx",
+#         "type": "gqrx",
 #         "config": {
 #             "host": "localhost",
-#             "port": 4532
+#             "port": 7356
 #         }
 #     }
 # }""")
