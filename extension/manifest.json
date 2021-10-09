@@ -1,42 +1,56 @@
 {
-    "name": "Radio Control",
-    "description": "Sets radio frequnecies by clicking on spots",
-    "version": "1.0",
-    "manifest_version": 3,
-    "permissions": [
-      "nativeMessaging", 
-      "clipboardWrite",
-      "storage"
-    ],
-    "host_permissions": [
-        "https://pota.app/#/"
-    ],
-    "background": {
-        "service_worker": "background.js"
-      },
-    "content_scripts": [
-      {
-        "matches": ["https://pota.app/"],
-        "run_at": "document_idle",
-        "js": ["scripts/pota-spotter-content.js"],
-        "css": ["css/pota_spot_changes.css"]
-      },
-      {
-        "matches": ["https://sotawatch.sota.org.uk/en/"],
-        "run_at": "document_idle",
-        "js": ["scripts/sota-spotter-content.js"],
-        "css": ["css/sota_spot_changes.css"]
-      }
-    ],
-    "action": {
-      "default_icon": {
-        "24": "images/signal_empty.png"
-      },
-      "default_title": "View Alerts",
-      "default_popup": "alerts.html"
+  "name": "Radio Control",
+  "description": "Sets radio frequnecies by clicking on spots",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": [
+    "nativeMessaging",
+    "clipboardWrite",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://pota.app/#/"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://pota.app/"
+      ],
+      "run_at": "document_idle",
+      "js": [
+        "scripts/object_matcher.js",
+        "scripts/pota-spotter-content.js"
+      ],
+      "css": [
+        "css/pota_spot_changes.css"
+      ]
     },
-    "icons": {
-      "24": "images/signal_empty.png",
-      "128": "images/signal_empty.png"
+    {
+      "matches": [
+        "https://sotawatch.sota.org.uk/en/"
+      ],
+      "run_at": "document_idle",
+      "js": [
+        "scripts/object_matcher.js",
+        "scripts/sota-spotter-content.js"
+      ],
+      "css": [
+        "css/sota_spot_changes.css"
+      ]
     }
+  ],
+  "action": {
+    "default_icon": {
+      "24": "images/signal_empty.png"
+    },
+    "default_title": "View Alerts",
+    "default_popup": "alerts.html"
+  },
+  "icons": {
+    "24": "images/signal_empty.png",
+    "128": "images/signal_empty.png"
+  }
 }

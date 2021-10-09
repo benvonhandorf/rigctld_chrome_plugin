@@ -6,58 +6,64 @@ let pota_whitespace_regex = /\s*(?<content>[\w-]+)\s*/
 let pota_callsign_unit_regex = /\s*(?<callsign>[\w-]+)\s*@\s*(?<unit>[\w-]+)\s*/
 
 let parse_card_data = (card) => {
-    if(card.classList.contains('spot-card')) {
-        return null
+    try {
+        if (card.classList.contains('spot-card')) {
+            return null
+        }
+
+        let frequency_text = card.children[2]?.children[2]?.innerText;
+
+        let match = frequency_text?.match(pota_frequency_regex);
+
+        let frequency = parseFloat(match?.groups?.frequency || "0");
+
+        if (match.groups.units === "k") {
+            frequency = frequency * 1000;
+        } else if (match.groups.units === "M") {
+            frequency = frequency * 1000000;
+        }
+
+        mode = match.groups.mode
+
+        if (mode == null) {
+            mode = "SSB"
+        }
+
+        let callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.children[0]?.innerText
+
+        if (callsign_text == null) {
+            callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.innerText
+
+            let callsign_unit_match = callsign_text?.match(pota_callsign_unit_regex)
+
+            callsign = callsign_unit_match?.groups?.callsign
+            unit = callsign_unit_match?.groups?.unit
+        } else {
+            callsign = callsign_text?.match(pota_whitespace_regex)?.groups?.content
+
+            let unit_text = card.getElementsByClassName("v-menu")[0]?.innerText
+
+            unit = unit_text?.match(pota_whitespace_regex)?.groups?.content
+        }
+
+        let location_text = card.children[2]?.children[1]?.children[1]?.innerText;
+
+        spot_location = location_text.match(pota_whitespace_regex)?.groups?.content;
+
+        let card_data = {
+            frequency: frequency,
+            mode: mode,
+            callsign: callsign,
+            unit: unit,
+            location: spot_location
+        }
+
+        return card_data;
+    } catch (e) {
+        console.log(`Failed parsing card with exception ${e}`);
+        console.log(card);
+        return null;
     }
-
-    let frequency_text = card.children[2]?.children[2]?.innerText;
-
-    let match = frequency_text?.match(pota_frequency_regex);
-
-    let frequency = parseFloat(match?.groups?.frequency || "0");
-
-    if(match.groups.units === "k") {
-        frequency = frequency * 1000;
-    } else if(match.groups.units === "M") {
-        frequency = frequency * 1000000;
-    }
-
-    mode = match.groups.mode
-
-    if(mode == null) {
-        mode = "SSB"
-    }
-
-    let callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.children[0]?.innerText
-
-    if(callsign_text == null) {
-        callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.innerText
-
-        let callsign_unit_match = callsign_text?.match(pota_callsign_unit_regex)
-
-        callsign = callsign_unit_match?.groups?.callsign
-        unit = callsign_unit_match?.groups?.unit
-    } else {
-        callsign = callsign_text?.match(pota_whitespace_regex)?.groups?.content
-
-        let unit_text = card.getElementsByClassName("v-menu")[0]?.innerText
-
-        unit = unit_text?.match(pota_whitespace_regex)?.groups?.content
-    }
-
-    let location_text = card.children[2]?.children[1]?.children[1]?.innerText;
-
-    spot_location = location_text.match(pota_whitespace_regex)?.groups?.content;
-
-    let card_data = {
-        frequency: frequency,
-        mode: mode,
-        callsign: callsign,
-        unit: unit,
-        location: spot_location
-    }
-
-    return card_data;
 }
 
 let frequency_click = (evt) => {
@@ -77,21 +83,21 @@ let perform_update = () => {
 
     console.log("Updating dom:" + cards.length);
 
-    for(let card of cards) {
+    for (let card of cards) {
         var spot_data = parse_card_data(card);
 
-        if(spot_data == null) {
+        if (spot_data == null) {
             continue;
         }
 
-        if(card.children[2] != null && card.children[2].children[2] != null) {
+        if (card.children[2] != null && card.children[2].children[2] != null) {
             let frequency_entry = card.children[2].children[2];
 
             frequency_entry.removeEventListener("click", frequency_click);
 
             frequency_entry.addEventListener("click", frequency_click)
 
-            if(!frequency_entry.classList.contains("frequency_entry")) {
+            if (!frequency_entry.classList.contains("frequency_entry")) {
                 frequency_entry.classList.add("frequency_entry");
             }
         }
@@ -107,20 +113,55 @@ let perform_update = () => {
 
     chrome.runtime.sendMessage(spots_update);
 
-    if(event_handler_debounce) {
+    if (event_handler_debounce) {
         window.clearTimeout(event_handler_debounce);
     }
 
     event_handler_debounce = null;
 }
 
+let find_card_by_spot = (spot_to_find) => {
+    let cards = document.getElementsByClassName("v-card");
+    let spots = [];
+
+    console.log("Updating dom:" + cards.length);
+
+    for (let card of cards) {
+        var spot_data = parse_card_data(card);
+
+        if (spots_same_unit_and_callsign(spot_to_find, spot_data)) {
+            return card;
+        }
+    }
+
+    return null;
+}
+
+var highlighted_card = null;
+
+let highlight_spot = (spot_to_highlight) => {
+    const highlighted_card_class = "highlighted_spot";
+
+    if (highlighted_card != null) {
+        highlighted_card.classList.remove(highlighted_card_class);
+        highlighted_card = null;
+    }
+
+    card = find_card_by_spot(spot_to_highlight);
+
+    if (card) {
+        card.classList.add(highlighted_card_class);
+        highlighted_card = card;
+    }
+}
+
 let enqueue_update = (evt) => {
-    if(evt.srcElement.parentElement.parentElement.className === "refresh-timer") {
+    if (evt.srcElement.parentElement.parentElement.className === "refresh-timer") {
         //Don't update every time the timer updates
         return;
     }
 
-    if(event_handler_debounce) {
+    if (event_handler_debounce) {
         window.clearTimeout(event_handler_debounce);
     }
 
@@ -130,7 +171,7 @@ let enqueue_update = (evt) => {
 let setup = () => {
     let main_div = document.getElementsByClassName("v-main")[0]
 
-    if(!main_div) {
+    if (!main_div) {
         console.log("Unable to setup monitor due to missing main content section")
         return;
     }
@@ -141,5 +182,15 @@ let setup = () => {
 };
 
 setup();
+
+chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+        if (request.type === "highlight") {
+            highlight_spot(request.spot);
+
+            sendResponse({ ack: true });
+        }
+    }
+);
 
 console.log("Page setup completed");
