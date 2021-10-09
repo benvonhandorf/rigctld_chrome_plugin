@@ -168,7 +168,7 @@ let evaluate_alerts_for_spots_by_tab = (tab_id) => {
         }
     }
 
-    for (existing_alert of vestigial_alerts_from_tab) {
+    for (const existing_alert of vestigial_alerts_from_tab) {
         //Remove any alerts which are no longer in the spot data for this tab or no longer match
         //the alert criteria
         let alert_index = spots_to_alert.indexOf(existing_alert)
