@@ -1,3 +1,4 @@
+import * as object_matcher from "./object_matcher";
 
 let event_handler_debounce = null;
 
@@ -7,7 +8,8 @@ let pota_callsign_unit_regex = /\s*(?<callsign>[\w-]+)\s*@\s*(?<unit>[\w-]+)\s*/
 
 let parse_card_data = (card) => {
     try {
-        if (card.classList.contains('spot-card')) {
+        if (card.classList.contains('spot-card') || card.closest(".v-menu__content") != null) {
+            //Either the "add a spot" card or a profile card popped up under the Menu
             return null
         }
 
@@ -23,13 +25,16 @@ let parse_card_data = (card) => {
             frequency = frequency * 1000000;
         }
 
-        mode = match.groups.mode
+        let mode = match.groups.mode
 
         if (mode == null) {
             mode = "SSB"
         }
 
-        let callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.children[0]?.innerText
+        let callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.children[0]?.innerText;
+        let callsign = null;
+
+        let unit = null;
 
         if (callsign_text == null) {
             callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.innerText
@@ -47,8 +52,7 @@ let parse_card_data = (card) => {
         }
 
         let location_text = card.children[2]?.children[1]?.children[1]?.innerText;
-
-        spot_location = location_text.match(pota_whitespace_regex)?.groups?.content;
+        let spot_location = location_text.match(pota_whitespace_regex)?.groups?.content;
 
         let card_data = {
             frequency: frequency,
@@ -129,7 +133,7 @@ let find_card_by_spot = (spot_to_find) => {
     for (let card of cards) {
         var spot_data = parse_card_data(card);
 
-        if (spots_same_unit_and_callsign(spot_to_find, spot_data)) {
+        if (object_matcher.spots_same_unit_and_callsign(spot_to_find, spot_data)) {
             return card;
         }
     }

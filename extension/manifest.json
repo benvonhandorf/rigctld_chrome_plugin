@@ -12,7 +12,7 @@
     "https://pota.app/#/"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.bundle.js"
   },
   "content_scripts": [
     {
@@ -21,8 +21,7 @@
       ],
       "run_at": "document_idle",
       "js": [
-        "scripts/object_matcher.js",
-        "scripts/pota-spotter-content.js"
+        "pota-spotter-content.bundle.js"
       ],
       "css": [
         "css/pota_spot_changes.css"
@@ -34,8 +33,7 @@
       ],
       "run_at": "document_idle",
       "js": [
-        "scripts/object_matcher.js",
-        "scripts/sota-spotter-content.js"
+        "sota-spotter-content.bundle.js"
       ],
       "css": [
         "css/sota_spot_changes.css"
@@ -47,7 +45,7 @@
       "24": "images/signal_empty.png"
     },
     "default_title": "View Alerts",
-    "default_popup": "alerts.html"
+    "default_popup": "popup.html"
   },
   "icons": {
     "24": "images/signal_empty.png",

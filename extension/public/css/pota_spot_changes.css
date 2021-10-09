@@ -1,0 +1,8 @@
+div.frequency_entry {
+    cursor:pointer;
+    text-decoration: underline coral;
+}
+
+div.highlighted_spot {
+    background-color: coral;
+}

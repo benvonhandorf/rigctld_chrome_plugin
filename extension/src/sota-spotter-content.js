@@ -1,3 +1,4 @@
+import * as object_matcher from "./object_matcher";
 
 let event_handler_debounce = null;
 

@@ -1,10 +1,6 @@
-try {
-    importScripts('scripts/object_matcher.js');
-} catch (error) {
-    console.error(error);
-}
+import * as object_matcher from "./object_matcher";
 
-console.log("Background setup");
+console.log("Background setup is beginning");
 
 //TODO Local storage and configuration
 var rigs = [
@@ -117,23 +113,32 @@ let handle_control_request = (request) => {
     }
 }
 
+let evaluate_spot_alerts = (spot) => {
+    let alerts_for_program = alerts_by_program[spot.program]
+
+    for(const alert_configuration of alerts_for_program) {
+        if(object_matcher.evaluate_objects(alert_configuration, spot)) {
+            return true;
+        }
+    }
+}
 
 let evaluate_alerts_for_spots_by_tab = (tab_id) => {
-    tab_spots = dataCache.spots_by_tab[tab_id] || [];
+    let tab_spots = dataCache.spots_by_tab[tab_id] || [];
 
     console.log(`Spot data for tab ${tab_id}: `);
 
     console.log(tab_spots);
 
-    vestigial_alerts_from_tab = spots_to_alert.filter((existing) => existing.tab_id == tab_id)
+    let vestigial_alerts_from_tab = spots_to_alert.filter((existing) => existing.tab_id == tab_id)
 
-    potential_alert_spots = tab_spots.filter(spot => evaluate_spot_alerts(spot))
+    const potential_alert_spots = tab_spots.filter(spot => evaluate_spot_alerts(spot))
 
     if (potential_alert_spots.length) {
         let new_alerts = false;
 
         for (const spot of potential_alert_spots) {
-            existing_alerts = spots_to_alert.filter((existing) => spots_same_including_frequency(spot, existing))
+            let existing_alerts = spots_to_alert.filter((existing) => object_matcher.spots_same_including_frequency(spot, existing))
 
             if (!existing_alerts.length) {
                 spots_to_alert.push(spot)
@@ -143,7 +148,7 @@ let evaluate_alerts_for_spots_by_tab = (tab_id) => {
                 console.log(spot)
                 console.log(existing_alerts)
 
-                for (existing_alert of existing_alerts) {
+                for (const existing_alert of existing_alerts) {
                     //Alerts that still match active data in the tab and the alert criteria
                     //aren't vestigial... remove them from that list.
                     let alert_index = vestigial_alerts_from_tab.indexOf(existing_alert)
@@ -180,7 +185,7 @@ let evaluate_alerts_for_spots_by_tab = (tab_id) => {
 }
 
 let evaluate_alerts_for_all_tabs = () => {
-    for (tab_id in dataCache.spots_by_tab) {
+    for (const tab_id in dataCache.spots_by_tab) {
         evaluate_alerts_for_spots_by_tab(tab_id);
     }
 }
