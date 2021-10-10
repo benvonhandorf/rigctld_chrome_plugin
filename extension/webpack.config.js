@@ -6,6 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const config = {
   entry: {
     popup: path.join(__dirname, 'src', 'pages', 'Popup', 'index.jsx'),
+    options: path.join(__dirname, 'src', 'pages', 'Options', 'index.jsx'),
     object_matcher: path.join(__dirname, "src/object_matcher.js"),
     background: path.join(__dirname, "src/background.js"),
     "pota-spotter-content": path.join(__dirname, "src/pota-spotter-content.js"),
@@ -83,6 +84,12 @@ const config = {
       template: path.join(__dirname, 'src', 'pages', 'Popup', 'index.html'),
       filename: 'popup.html',
       chunks: ['popup'],
+      cache: false,
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, 'src', 'pages', 'Options', 'index.html'),
+      filename: 'options.html',
+      chunks: ['options'],
       cache: false,
     })
   ],

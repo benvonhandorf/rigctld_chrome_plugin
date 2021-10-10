@@ -95,6 +95,11 @@ async function ensureDataCache() {
 }
 
 let handle_control_request = (request) => {
+    if(rigs == null || rig_configurations == null) {
+        chrome.runtime.openOptionsPage();
+        return;
+    }
+
     for (rig_configuration of rig_configurations) {
         console.log("Control request: ");
         request.rig = rig_configuration;
