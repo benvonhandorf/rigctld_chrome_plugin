@@ -9,7 +9,7 @@ const config = {
     options: path.join(__dirname, 'src', 'pages', 'Options', 'index.jsx'),
     object_matcher: path.join(__dirname, "src/object_matcher.js"),
     background: path.join(__dirname, "src/background.js"),
-    "pota-spotter-content": path.join(__dirname, "src/pota-spotter-content.js"),
+    "pota-spotter-content": path.join(__dirname, "src/pota-spotter-content.ts"),
     "sota-spotter-content": path.join(__dirname, "src/sota-spotter-content.js"),
   },
   output: {

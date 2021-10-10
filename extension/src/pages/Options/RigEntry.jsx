@@ -13,7 +13,7 @@ const RigEntry = (props) => {
             />
 
             <h2>Connection Settings</h2>
-            <FormControl>
+            <FormControl sx={{ minWidth: 200 }}>
                 <InputLabel id="rig-type-label">Connection Type</InputLabel>
                 <Select
                     labelId="rig-type-label"
@@ -29,11 +29,13 @@ const RigEntry = (props) => {
                 required
                 id="rig-connection-host"
                 label="Host"
+                helperText="Hostname for this rig control setup"
             />
             <TextField
                 required
                 id="rig-connection-port"
                 label="Port"
+                helperText="Port used to connect"
             />
 
         </div>

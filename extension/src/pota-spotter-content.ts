@@ -1,12 +1,14 @@
 import * as object_matcher from "./object_matcher";
+import Spot from "./Spot"
+import { Message, ControlMessage, HighlightMessage } from "./Messages";
 
-let event_handler_debounce = null;
+let event_handler_debounce: any = null;
 
 let pota_frequency_regex = /(?<frequency>\d+(?:.?\d+)?)\s*(?<units>[k]?)Hz\s*(?:\((?<mode>\w+)\))?/;
 let pota_whitespace_regex = /\s*(?<content>[\w-]+)\s*/
 let pota_callsign_unit_regex = /\s*(?<callsign>[\w-]+)\s*@\s*(?<unit>[\w-]+)\s*/
 
-let parse_card_data = (card) => {
+let parse_card_data = (card: any): Spot | null => {
     try {
         if (card.classList.contains('spot-card') || card.closest(".v-menu__content") != null) {
             //Either the "add a spot" card or a profile card popped up under the Menu
@@ -17,7 +19,7 @@ let parse_card_data = (card) => {
 
         let match = frequency_text?.match(pota_frequency_regex);
 
-        let frequency = parseFloat(match?.groups?.frequency || "0");
+        let frequency: number = parseFloat(match?.groups?.frequency || "0");
 
         if (match.groups.units === "k") {
             frequency = frequency * 1000;
@@ -25,16 +27,12 @@ let parse_card_data = (card) => {
             frequency = frequency * 1000000;
         }
 
-        let mode = match.groups.mode
-
-        if (mode == null) {
-            mode = "SSB"
-        }
+        let mode: string = match?.groups?.mode || "SSB"
 
         let callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.children[0]?.innerText;
-        let callsign = null;
 
-        let unit = null;
+        let callsign: string
+        let unit: string
 
         if (callsign_text == null) {
             callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.innerText
@@ -44,15 +42,14 @@ let parse_card_data = (card) => {
             callsign = callsign_unit_match?.groups?.callsign
             unit = callsign_unit_match?.groups?.unit
         } else {
-            callsign = callsign_text?.match(pota_whitespace_regex)?.groups?.content
-
             let unit_text = card.getElementsByClassName("v-menu")[0]?.innerText
 
+            callsign = callsign_text?.match(pota_whitespace_regex)?.groups?.content
             unit = unit_text?.match(pota_whitespace_regex)?.groups?.content
         }
 
-        let location_text = card.children[2]?.children[1]?.children[1]?.innerText;
-        let spot_location = location_text.match(pota_whitespace_regex)?.groups?.content;
+        let location_text: string = card.children[2]?.children[1]?.children[1]?.innerText;
+        let spot_location: string = location_text.match(pota_whitespace_regex)?.groups?.content || "Unknown";
 
         let card_data = {
             frequency: frequency,
@@ -70,15 +67,23 @@ let parse_card_data = (card) => {
     }
 }
 
-let frequency_click = (evt) => {
-    let card = evt.srcElement.closest(".v-card");
+let frequency_click = (evt: Event) => {
+    let card = (evt.target as HTMLElement)?.closest(".v-card");
 
-    let request = parse_card_data(card)
+    if (card == null) {
+        return;
+    }
 
-    request.type = "control";
+    let spot_data = parse_card_data(card);
 
-    console.log(request);
-    chrome.runtime.sendMessage(request);
+    if (spot_data) {
+        let request = new ControlMessage(spot_data)
+
+        console.log(request);
+        chrome.runtime.sendMessage(request);
+    }
+
+
 }
 
 let perform_update = () => {
@@ -87,7 +92,7 @@ let perform_update = () => {
 
     console.log("Updating dom:" + cards.length);
 
-    for (let card of cards) {
+    for (const card of cards) {
         var spot_data = parse_card_data(card);
 
         if (spot_data == null) {
@@ -124,26 +129,28 @@ let perform_update = () => {
     event_handler_debounce = null;
 }
 
-let find_card_by_spot = (spot_to_find) => {
+let find_card_by_spot = (spot_to_find: Spot): HTMLElement | null => {
     let cards = document.getElementsByClassName("v-card");
     let spots = [];
 
     console.log("Updating dom:" + cards.length);
 
-    for (let card of cards) {
-        var spot_data = parse_card_data(card);
+    for (const card of cards) {
+        if (card instanceof HTMLElement) {
+            var spot_data = parse_card_data(card);
 
-        if (object_matcher.spots_same_unit_and_callsign(spot_to_find, spot_data)) {
-            return card;
+            if (object_matcher.spots_same_unit_and_callsign(spot_to_find, spot_data)) {
+                return card;
+            }
         }
     }
 
     return null;
 }
 
-var highlighted_card = null;
+var highlighted_card: HTMLElement | null = null;
 
-let highlight_spot = (spot_to_highlight) => {
+let highlight_spot = (spot_to_highlight: Spot | null) => {
     const highlighted_card_class = "highlighted_spot";
 
     if (highlighted_card != null) {
@@ -151,16 +158,18 @@ let highlight_spot = (spot_to_highlight) => {
         highlighted_card = null;
     }
 
-    card = find_card_by_spot(spot_to_highlight);
+    if (spot_to_highlight != null) {
+        let card = find_card_by_spot(spot_to_highlight);
 
-    if (card) {
-        card.classList.add(highlighted_card_class);
-        highlighted_card = card;
+        if (card) {
+            card.classList.add(highlighted_card_class);
+            highlighted_card = card;
+        }
     }
 }
 
-let enqueue_update = (evt) => {
-    if (evt.srcElement.parentElement.parentElement.className === "refresh-timer") {
+let enqueue_update = (evt: Event) => {
+    if ((evt.target as HTMLElement)?.parentElement?.parentElement?.className === "refresh-timer") {
         //Don't update every time the timer updates
         return;
     }
@@ -188,8 +197,8 @@ let setup = () => {
 setup();
 
 chrome.runtime.onMessage.addListener(
-    function (request, sender, sendResponse) {
-        if (request.type === "highlight") {
+    function (request: Message, sender, sendResponse) {
+        if (request instanceof HighlightMessage) {
             highlight_spot(request.spot);
 
             sendResponse({ ack: true });

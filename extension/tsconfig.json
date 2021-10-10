@@ -7,9 +7,10 @@
         "noImplicitAny": true,
         "module": "es6",
         "moduleResolution": "node",
-        "target": "es5",
+        "target": "es6",
         "allowJs": true,
         "jsx": "react",
+        "downlevelIteration": true
     },
     "include": [
         "./src/**/*",
