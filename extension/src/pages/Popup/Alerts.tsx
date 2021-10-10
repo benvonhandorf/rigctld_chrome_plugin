@@ -1,8 +1,9 @@
 import React from 'react';
+import Spot from '../../Spot';
 import AlertSummary from './AlertSummary';
 
-const Alerts = (props) => {
-  let alerts = props.alerts
+const Alerts = (props: any) : JSX.Element => {
+  let alerts : Spot[] = props.alerts
 
   if (alerts != null) {
     return (
@@ -12,6 +13,8 @@ const Alerts = (props) => {
         }
       </ul>
     );
+  } else {
+    return (<></>);
   }
 };
 

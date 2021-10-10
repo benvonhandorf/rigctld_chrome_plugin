@@ -2,7 +2,7 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import {TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
-const RigEntry = (props) => {
+const RigEntry = (props: any) => {
     return (
         <div>
             <h1>Rig Configuration</h1>

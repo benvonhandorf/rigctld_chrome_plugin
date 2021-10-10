@@ -1,7 +1,8 @@
 import React from 'react';
+import Spot from '../../Spot';
 
-const AlertSummary = (props) => {
-  let spot_alert = props.spot_alert;
+const AlertSummary = (props: any) => {
+  let spot_alert: Spot = props.spot_alert;
 
   return (
     <li className="Alert">

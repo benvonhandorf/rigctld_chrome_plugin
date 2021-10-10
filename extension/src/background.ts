@@ -1,6 +1,6 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot"
-import { Message, ControlMessage, HighlightMessage, SpotsMessage } from "./Messages";
+import { Message, ControlMessage, HighlightMessage, SpotsMessage, RetrieveAlertsMessage, AlertsMessage, MessageType } from "./Messages";
 import { RigType, RigConfiguration, RigInformation } from "./RigConfiguration";
 
 console.log("Background setup is beginning");
@@ -199,21 +199,20 @@ let evaluate_alerts_for_spots_by_tab = (tab_id: number) => {
     } else {
         console.log("No spots still active");
         chrome.action.setIcon({ path: "images/signal_empty.png" });
-
-        chrome.runtime.sendMessage({ type: "alerts", alerts: spots_to_alert });
     }
+
+    chrome.runtime.sendMessage(new AlertsMessage(spots_to_alert));
 }
 
 let evaluate_alerts_for_all_tabs = () => {
-    console.log(dataCache.spots_by_tab);
-
     if (dataCache.spots_by_tab == null) {
         return;
     }
 
     try {
-        for (const tab_id of dataCache.spots_by_tab) {
-            evaluate_alerts_for_spots_by_tab(tab_id);
+        for (const tab_id in dataCache.spots_by_tab) {
+            const tab_id_number: number = +tab_id
+            evaluate_alerts_for_spots_by_tab(tab_id_number);
         }
     } catch (e) {
         console.log(e)
@@ -241,8 +240,7 @@ ensureDataCache().then(() => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-
-    if (request.type == "control") {
+    if (request.type === MessageType.Control) {
         ensureDataCache().then(() => {
             evaluate_alerts_for_all_tabs();
         }).then(() => {
@@ -250,7 +248,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         return false;
-    } else if (request.type == "spots") {
+    } else if (request.type === MessageType.Spots) {
         ensureDataCache().then(() => {
             evaluate_alerts_for_all_tabs();
         }).then(() => {
@@ -258,23 +256,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         return false;
-    } else if (request.type == "retrieve_alerts") {
-        console.log("Retrieving alerts");
-
+    } else if (request.type === MessageType.RetrieveAlerts) {
         ensureDataCache().then(() => {
             evaluate_alerts_for_all_tabs();
         }).then(() => {
             chrome.action.setIcon({ path: "images/signal_empty.png" })
 
-            console.log(spots_to_alert);
-
-            sendResponse(
-                { alerts: spots_to_alert }
-            );
+            sendResponse(new AlertsMessage(spots_to_alert));
         });
 
         return true;
     } else {
+        console.log("Unknown message type");
+        console.log(request);
         return false;
     }
 }

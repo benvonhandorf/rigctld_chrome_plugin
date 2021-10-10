@@ -6,7 +6,8 @@ export enum MessageType {
     Control = "control",
     Highlight = "highlight",
     Spots = "spots",
-    RetrieveAlerts = "retrieve_alerts"
+    RetrieveAlerts = "retrieve_alerts",
+    Alerts = "alerts"
 };
 
 export interface Message {
@@ -34,6 +35,21 @@ export class SpotsMessage implements Message {
         this.spots = s;
     }
 }
+
+export class RetrieveAlertsMessage implements Message {
+    type = MessageType.RetrieveAlerts;
+}
+
+export class AlertsMessage implements Message {
+    type = MessageType.Alerts;
+
+    spots: Spot[];
+
+    constructor(s: Spot[]) {
+        this.spots = s;
+    }
+}
+
 
 export class HighlightMessage implements Message {
     type = MessageType.Highlight;
