@@ -5,27 +5,6 @@ import { RigType, RigConfiguration, RigInformation } from "./RigConfiguration";
 
 console.log("Background setup is beginning");
 
-//TODO Local storage and configuration
-var rigs: RigInformation[] = [
-    {
-        "name": "FT-891",
-        "type": RigType.Rigctld,
-        "config": {
-            "host": "localhost",
-            "port": 4532
-        }
-    }, {
-        "name": "Gqrx",
-        "type": RigType.Gqrx,
-        "config": {
-            "host": "localhost",
-            "port": 7356
-        }
-    }
-]
-
-var rig_configurations = [rigs[1]]
-
 //Transient and rebuilt from dataCache.spots_by_tab and alerts_by_program configuration, not stored
 var spots_to_alert: Spot[] = [];
 
@@ -74,13 +53,31 @@ const dataCache: any = {}
 
 const initDataCache = getAllStorageLocalData().then(items => {
     Object.assign(dataCache, items)
-});
+}).then(() => getAllStorageSyncData())
+    .then(items => {
+        Object.assign(dataCache, items);
+    });
 
 function getAllStorageLocalData() {
     // Immediately return a promise and start asynchronous work
     return new Promise((resolve, reject) => {
         // Asynchronously fetch all data from storage.sync.
         chrome.storage.local.get(null, (items) => {
+            // Pass any observed errors down the promise chain.
+            if (chrome.runtime.lastError) {
+                return reject(chrome.runtime.lastError);
+            }
+            // Pass the data retrieved from storage down the promise chain.
+            resolve(items);
+        });
+    });
+}
+
+function getAllStorageSyncData() {
+    // Immediately return a promise and start asynchronous work
+    return new Promise((resolve, reject) => {
+        // Asynchronously fetch all data from storage.sync.
+        chrome.storage.sync.get(null, (items) => {
             // Pass any observed errors down the promise chain.
             if (chrome.runtime.lastError) {
                 return reject(chrome.runtime.lastError);
@@ -101,14 +98,16 @@ async function ensureDataCache() {
 }
 
 let handle_control_request = (request: ControlMessage) => {
-    if (rigs == null || rig_configurations == null) {
+    if (dataCache.rig_information == null || dataCache.rig_setup == null) {
         chrome.runtime.openOptionsPage();
         return;
     }
 
-    for (const rig_configuration of rig_configurations) {
+    for (const rig_index of dataCache.rig_setup) {
+        const rig_information = dataCache.rig_information[rig_index]
+
         console.log("Control request: ");
-        request.rig = rig_configuration;
+        request.rig = rig_information;
         console.log(request);
 
         try {
@@ -216,7 +215,7 @@ let evaluate_alerts_for_all_tabs = () => {
         }
     } catch (e) {
         console.log(e)
-        console.log(dataCache.spots_by_tab )
+        console.log(dataCache.spots_by_tab)
     }
 }
 

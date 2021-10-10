@@ -9,7 +9,7 @@ import '@fontsource/roboto/700.css';
 
 import Alerts from './Alerts';
 import './index.css';
-import { AlertsMessage, RetrieveAlertsMessage } from '../../Messages';
+import { AlertsMessage, MessageType, RetrieveAlertsMessage } from '../../Messages';
 
 // if (module.hot) module.hot.accept();
 
@@ -32,7 +32,7 @@ let retrieve_alerts = () => {
 retrieve_alerts();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request instanceof AlertsMessage) {
+    if (request.type === MessageType.Alerts) {
         //New alert data is avalable
         bind_alerts(request);
     }
