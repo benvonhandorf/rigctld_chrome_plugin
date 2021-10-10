@@ -1,19 +1,22 @@
 import * as object_matcher from "./object_matcher";
+import Spot from "./Spot"
+import { Message, ControlMessage, HighlightMessage, SpotsMessage } from "./Messages";
+import { RigType, RigConfiguration, RigInformation } from "./RigConfiguration";
 
 console.log("Background setup is beginning");
 
 //TODO Local storage and configuration
-var rigs = [
+var rigs: RigInformation[] = [
     {
         "name": "FT-891",
-        "type": "rigctld",
+        "type": RigType.Rigctld,
         "config": {
             "host": "localhost",
             "port": 4532
         }
     }, {
         "name": "Gqrx",
-        "type": "gqrx",
+        "type": RigType.Gqrx,
         "config": {
             "host": "localhost",
             "port": 7356
@@ -24,47 +27,50 @@ var rigs = [
 var rig_configurations = [rigs[1]]
 
 //Transient and rebuilt from dataCache.spots_by_tab and alerts_by_program configuration, not stored
-var spots_to_alert = [];
+var spots_to_alert: Spot[] = [];
 
-//TODO Local storage and configuration
-var alerts_by_program = {
-    "pota": [{
-        location: "US-AK"
-    },
-    {
-        location: "US-AZ"
-    },
-    {
-        location: "US-HI"
-    },
-    {
-        location: "US-ME"
-    },
-    {
-        location: "US-MT"
-    },
-    {
-        location: "US-NM"
-    },
-    {
-        location: "US-OR"
-    },
-    {
-        location: "US-SD"
-    },
-    {
-        location: "US-WA"
-    },
-    {
-        location: "US-WY"
-    },
-    {
-        location: "US-TX"
-    }
-    ]
+class AlertConfiguration {
+    location?: string;
 }
 
-const dataCache = {}
+//TODO Local storage and configuration
+var alerts_by_program = new Map<string, AlertConfiguration[]>()
+alerts_by_program.set("pota", [{
+    location: "US-AK"
+},
+{
+    location: "US-AZ"
+},
+{
+    location: "US-HI"
+},
+{
+    location: "US-ME"
+},
+{
+    location: "US-MT"
+},
+{
+    location: "US-NM"
+},
+{
+    location: "US-OR"
+},
+{
+    location: "US-SD"
+},
+{
+    location: "US-WA"
+},
+{
+    location: "US-WY"
+},
+{
+    location: "US-TX"
+}
+]);
+
+const dataCache: any = {}
 
 const initDataCache = getAllStorageLocalData().then(items => {
     Object.assign(dataCache, items)
@@ -94,8 +100,8 @@ async function ensureDataCache() {
     }
 }
 
-let handle_control_request = (request) => {
-    if(rigs == null || rig_configurations == null) {
+let handle_control_request = (request: ControlMessage) => {
+    if (rigs == null || rig_configurations == null) {
         chrome.runtime.openOptionsPage();
         return;
     }
@@ -118,26 +124,31 @@ let handle_control_request = (request) => {
     }
 }
 
-let evaluate_spot_alerts = (spot) => {
-    let alerts_for_program = alerts_by_program[spot.program]
+let evaluate_spot_alerts = (spot: Spot): boolean => {
+    let alerts_for_program = alerts_by_program.get(spot.program)
+
+    if (alerts_for_program == null) {
+        return false;
+    }
 
     for (const alert_configuration of alerts_for_program) {
         if (object_matcher.evaluate_objects(alert_configuration, spot)) {
             return true;
         }
     }
+
+    return false
 }
 
-let evaluate_alerts_for_spots_by_tab = (tab_id) => {
+let evaluate_alerts_for_spots_by_tab = (tab_id: number) => {
     let tab_spots = dataCache.spots_by_tab[tab_id] || [];
 
     console.log(`Spot data for tab ${tab_id}: `);
-
     console.log(tab_spots);
 
-    let vestigial_alerts_from_tab = spots_to_alert.filter((existing) => existing.tab_id == tab_id)
+    let vestigial_alerts_from_tab = spots_to_alert.filter((existing: Spot) => existing.tab_id == tab_id)
 
-    const potential_alert_spots = tab_spots.filter(spot => evaluate_spot_alerts(spot))
+    const potential_alert_spots = tab_spots.filter((spot: Spot) => evaluate_spot_alerts(spot))
 
     if (potential_alert_spots.length) {
         let new_alerts = false;
@@ -189,26 +200,32 @@ let evaluate_alerts_for_spots_by_tab = (tab_id) => {
         console.log("No spots still active");
         chrome.action.setIcon({ path: "images/signal_empty.png" });
 
-        chrome.runtime.sendMessage({type: "alerts", alerts: spots_to_alert});
+        chrome.runtime.sendMessage({ type: "alerts", alerts: spots_to_alert });
     }
 }
 
 let evaluate_alerts_for_all_tabs = () => {
-    for (const tab_id in dataCache.spots_by_tab) {
-        evaluate_alerts_for_spots_by_tab(tab_id);
+    console.log(dataCache.spots_by_tab);
+
+    if (dataCache.spots_by_tab == null) {
+        return;
+    }
+
+    try {
+        for (const tab_id of dataCache.spots_by_tab) {
+            evaluate_alerts_for_spots_by_tab(tab_id);
+        }
+    } catch (e) {
+        console.log(e)
+        console.log(dataCache.spots_by_tab )
     }
 }
 
-let handle_spots_data = (request, tab_id) => {
+let handle_spots_data = (request: SpotsMessage, tab_id: number) => {
 
     request.spots.forEach(spot => {
         spot.tab_id = tab_id;
-        spot.program = request.program;
     });
-
-    if (dataCache?.spots_by_tab == null) {
-        dataCache.spots_by_tab = {}
-    }
 
     dataCache.spots_by_tab[tab_id] = request.spots;
 
@@ -228,17 +245,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type == "control") {
         ensureDataCache().then(() => {
             evaluate_alerts_for_all_tabs();
+        }).then(() => {
+            handle_control_request(request);
         });
-
-        handle_control_request(request);
 
         return false;
     } else if (request.type == "spots") {
         ensureDataCache().then(() => {
             evaluate_alerts_for_all_tabs();
+        }).then(() => {
+            handle_spots_data(request, sender?.tab?.id || -1);
         });
-
-        handle_spots_data(request, sender?.tab?.id);
 
         return false;
     } else if (request.type == "retrieve_alerts") {
@@ -257,6 +274,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         return true;
+    } else {
+        return false;
     }
 }
 );

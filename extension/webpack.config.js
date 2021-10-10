@@ -8,7 +8,7 @@ const config = {
     popup: path.join(__dirname, 'src', 'pages', 'Popup', 'index.jsx'),
     options: path.join(__dirname, 'src', 'pages', 'Options', 'index.jsx'),
     object_matcher: path.join(__dirname, "src/object_matcher.js"),
-    background: path.join(__dirname, "src/background.js"),
+    background: path.join(__dirname, "src/background.ts"),
     "pota-spotter-content": path.join(__dirname, "src/pota-spotter-content.ts"),
     "sota-spotter-content": path.join(__dirname, "src/sota-spotter-content.js"),
   },

@@ -1,12 +1,12 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot"
-import { Message, ControlMessage, HighlightMessage } from "./Messages";
+import { Message, ControlMessage, SpotsMessage, HighlightMessage } from "./Messages";
 
 let event_handler_debounce: any = null;
 
 let pota_frequency_regex = /(?<frequency>\d+(?:.?\d+)?)\s*(?<units>[k]?)Hz\s*(?:\((?<mode>\w+)\))?/;
-let pota_whitespace_regex = /\s*(?<content>[\w-]+)\s*/
-let pota_callsign_unit_regex = /\s*(?<callsign>[\w-]+)\s*@\s*(?<unit>[\w-]+)\s*/
+let pota_whitespace_regex = /\s*(?<content>[\w-/]+)\s*/
+let pota_callsign_unit_regex = /\s*(?<callsign>[\w-/]+)\s*@\s*(?<unit>[\w-]+)\s*/
 
 let parse_card_data = (card: any): Spot | null => {
     try {
@@ -56,7 +56,8 @@ let parse_card_data = (card: any): Spot | null => {
             mode: mode,
             callsign: callsign,
             unit: unit,
-            location: spot_location
+            location: spot_location,
+            program: "pota"
         }
 
         return card_data;
@@ -114,11 +115,7 @@ let perform_update = () => {
         spots.push(spot_data)
     }
 
-    let spots_update = {
-        program: "pota",
-        type: "spots",
-        spots: spots
-    };
+    let spots_update = new SpotsMessage("pota", spots);
 
     chrome.runtime.sendMessage(spots_update);
 

@@ -1,3 +1,4 @@
+import { RigInformation } from "./RigConfiguration";
 import Spot from "./Spot";
 
 
@@ -12,12 +13,25 @@ export interface Message {
     type: MessageType;
 };
 
+
 export class ControlMessage implements Message {
     type = MessageType.Control;
     spot: Spot;
+    rig?: RigInformation;
 
     constructor(s: Spot) {
         this.spot = s;
+    }
+}
+
+export class SpotsMessage implements Message {
+    type = MessageType.Spots;
+    program: string;
+    spots: Spot[];
+
+    constructor(p: string, s: Spot[]) {
+        this.program = p;
+        this.spots = s;
     }
 }
 
