@@ -2,19 +2,19 @@
 import React from 'react';
 import { render } from 'react-dom';
 
-import Popup from './Popup';
+import Alerts from './Alerts';
 import './index.css';
 
-render(<Popup />, window.document.querySelector('#app-container'));
+// if (module.hot) module.hot.accept();
 
-if (module.hot) module.hot.accept();
-
-let bind_alerts = (spots) => {
-    console.log(alerts);
+let bind_alerts = (response) => {
+    if(response.alerts != null) {
+        render(<Alerts alerts={response.alerts} />, window.document.querySelector('#app-container'));
+    }
 }
 
 let retrieve_alerts = () => {
-    let request = {type: "alerts"}
+    let request = {type: "retrieve_alerts"}
 
     chrome.runtime.sendMessage(request, (response) => {
         bind_alerts(response)
@@ -23,3 +23,12 @@ let retrieve_alerts = () => {
 };
 
 retrieve_alerts();
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request?.type == "alerts") {
+        //New alert data is avalable
+        bind_alerts(request);
+
+        return false;
+    }
+});

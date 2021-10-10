@@ -116,8 +116,8 @@ let handle_control_request = (request) => {
 let evaluate_spot_alerts = (spot) => {
     let alerts_for_program = alerts_by_program[spot.program]
 
-    for(const alert_configuration of alerts_for_program) {
-        if(object_matcher.evaluate_objects(alert_configuration, spot)) {
+    for (const alert_configuration of alerts_for_program) {
+        if (object_matcher.evaluate_objects(alert_configuration, spot)) {
             return true;
         }
     }
@@ -166,6 +166,8 @@ let evaluate_alerts_for_spots_by_tab = (tab_id) => {
         if (new_alerts) {
             chrome.action.setIcon({ path: "images/signal_alert.png" });
         }
+
+
     }
 
     for (const existing_alert of vestigial_alerts_from_tab) {
@@ -181,6 +183,8 @@ let evaluate_alerts_for_spots_by_tab = (tab_id) => {
     } else {
         console.log("No spots still active");
         chrome.action.setIcon({ path: "images/signal_empty.png" });
+
+        chrome.runtime.sendMessage({type: "alerts", alerts: spots_to_alert});
     }
 }
 
@@ -214,24 +218,40 @@ ensureDataCache().then(() => {
     evaluate_alerts_for_all_tabs();
 });
 
-chrome.runtime.onMessage.addListener(
-    async (request, sender, sendResponse) => {
-        await ensureDataCache();
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
-        if (request.type == "control") {
-            handle_control_request(request);
-        } else if (request.type == "spots") {
-            handle_spots_data(request, sender?.tab?.id);
-        } else if (request.type == "alerts") {
+    if (request.type == "control") {
+        ensureDataCache().then(() => {
+            evaluate_alerts_for_all_tabs();
+        });
+
+        handle_control_request(request);
+
+        return false;
+    } else if (request.type == "spots") {
+        ensureDataCache().then(() => {
+            evaluate_alerts_for_all_tabs();
+        });
+
+        handle_spots_data(request, sender?.tab?.id);
+
+        return false;
+    } else if (request.type == "retrieve_alerts") {
+        console.log("Retrieving alerts");
+
+        ensureDataCache().then(() => {
+            evaluate_alerts_for_all_tabs();
+        }).then(() => {
             chrome.action.setIcon({ path: "images/signal_empty.png" })
 
-            sendResponse(
-                { spots: spots_to_alert }
-            );
+            console.log(spots_to_alert);
 
-            console.log("Alerts retrieved")
-        }
+            sendResponse(
+                { alerts: spots_to_alert }
+            );
+        });
 
         return true;
     }
+}
 );
