@@ -61,8 +61,10 @@ def process_message(message):
 
         rig_connection = get_rig_connection(message["rig"])
 
-        frequency = message["frequency"]
-        raw_mode = message["mode"].upper()
+        spot = message["spot"]
+
+        frequency = spot["frequency"]
+        raw_mode = spot["mode"].upper()
 
         mapped_mode = mode_lookup.get(raw_mode)
 
@@ -88,16 +90,22 @@ def process_message(message):
 while True:
     message = get_message()
 #     message = json.loads("""{
-#     "frequency": 14295000,
-#     "mode": "SSB",
 #     "rig": {
-#         "name": "Gqrx",
-#         "type": "gqrx",
 #         "config": {
 #             "host": "localhost",
 #             "port": 7356
-#         }
-#     }
+#         },
+#         "name": "Gqrx",
+#         "type": "gqrx"
+#     },
+#     "spot": {
+#         "callsign": "KE0DSD",
+#         "frequency": 21300000,
+#         "location": "US-CO",
+#         "mode": "SSB",
+#         "unit": "K-0227"
+#     },
+#     "type": "control"
 # }""")
 
     process_message(message)

@@ -21,7 +21,7 @@ var rigs = [
     }
 ]
 
-var rig_configurations = [rigs[0], rigs[1]]
+var rig_configurations = [rigs[1]]
 
 //Transient and rebuilt from dataCache.spots_by_tab and alerts_by_program configuration, not stored
 var spots_to_alert = [];
@@ -100,7 +100,7 @@ let handle_control_request = (request) => {
         return;
     }
 
-    for (rig_configuration of rig_configurations) {
+    for (const rig_configuration of rig_configurations) {
         console.log("Control request: ");
         request.rig = rig_configuration;
         console.log(request);
