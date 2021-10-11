@@ -1,6 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import {TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { TextField, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 const RigEntry = (props: any) => {
     return (
@@ -15,7 +15,7 @@ const RigEntry = (props: any) => {
             <h2>Connection Settings</h2>
             <FormControl sx={{ minWidth: 200 }}>
                 <InputLabel id="rig-type-label">Connection Type</InputLabel>
-                <Select
+                <Select required
                     labelId="rig-type-label"
                     id="rig-type"
                     label="Type"

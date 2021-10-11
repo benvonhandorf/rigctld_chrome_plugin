@@ -51,11 +51,28 @@ alerts_by_program.set("pota", [{
 
 const dataCache: any = {}
 
+// const set_sync_data = {
+//     rig_information: [
+//         new RigInformation("FT-891", RigType.Rigctld, new RigConfiguration("localhost", 4532)),
+//         new RigInformation("Gqrx", RigType.Gqrx, new RigConfiguration("localhost", 7356)),
+//     ]
+// };
+
+// const set_local_data = {
+//     rig_setup: [1]
+// }
+
+// chrome.storage.sync.set(set_sync_data, () => console.log("Saved sync data"));
+// chrome.storage.local.set(set_local_data, () => console.log("Saved local data"));
+
 const initDataCache = getAllStorageLocalData().then(items => {
     Object.assign(dataCache, items)
 }).then(() => getAllStorageSyncData())
     .then(items => {
         Object.assign(dataCache, items);
+
+        console.log("Storage loaded")
+        console.log(dataCache);
     });
 
 function getAllStorageLocalData() {
@@ -236,6 +253,18 @@ let handle_spots_data = (request: SpotsMessage, tab_id: number) => {
 
 ensureDataCache().then(() => {
     evaluate_alerts_for_all_tabs();
+});
+
+chrome.storage.onChanged.addListener((changes, area) =>{
+    Object.assign(dataCache, changes);
+
+    console.log(dataCache);
+
+    for(const k in changes) {
+        if(k === "alert_configuration") {
+            evaluate_alerts_for_all_tabs();
+        }
+    }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

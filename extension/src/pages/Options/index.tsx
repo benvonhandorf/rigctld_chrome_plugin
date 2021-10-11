@@ -11,16 +11,26 @@ import './index.css';
 
 import RigConfigurationDisplay from './RigConfigurationDisplay';
 import { RigConfiguration, RigInformation, RigType } from '../../RigConfiguration';
+import { getStorageItems } from '../../StorageUtil';
 
-let rig_data: any = {}
+const storageData: any = {}
 
-rig_data.rig_informations = [
-        new RigInformation("FT-891", RigType.Rigctld, new RigConfiguration("localhost", 4532)),
-        new RigInformation("Gqrx", RigType.Gqrx, new RigConfiguration("localhost", 7356)),
-    ];
+let bindRigs = () => {
+    render(<RigConfigurationDisplay rig_information={storageData.rig_information} rig_setup={storageData.rig_setup} />, window.document.querySelector('#app-container'));
+}
 
-chrome.storage.local.get(['rig_configuration', 'rig_control_settings'], (items) => {
-    Object.assign(rig_data, items);
+getStorageItems().then( (storageItems) => {
+    Object.assign(storageData, storageItems);
+    
+    console.log(storageData);
 
-    render(<RigConfigurationDisplay rig_informations={rig_data.rig_informations} />, window.document.querySelector('#app-container'));
+    bindRigs();
+});
+
+chrome.storage.onChanged.addListener((changes, area) =>{
+    Object.assign(storageData, changes);
+
+    console.log(storageData);
+
+    bindRigs();
 });
