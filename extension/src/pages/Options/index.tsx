@@ -12,25 +12,45 @@ import './index.css';
 import RigConfigurationDisplay from './RigConfigurationDisplay';
 import { RigConfiguration, RigInformation, RigType } from '../../RigConfiguration';
 import { getStorageItems } from '../../StorageUtil';
+import { RigRepository } from './RigRepository';
 
-const storageData: any = {}
+const dataCache: any = {}
+
+// const changeRigActivation : RigRepostory.ChangeRigActivation = 
+
+// const rig_repository = new RigRepository
 
 let bindRigs = () => {
-    render(<RigConfigurationDisplay rig_information={storageData.rig_information} rig_setup={storageData.rig_setup} />, window.document.querySelector('#app-container'));
+    render(<RigConfigurationDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} />, window.document.querySelector('#app-container'));
 }
 
-getStorageItems().then( (storageItems) => {
-    Object.assign(storageData, storageItems);
-    
-    console.log(storageData);
+getStorageItems().then((storageItems) => {
+    Object.assign(dataCache, storageItems);
+
+    console.log(dataCache);
 
     bindRigs();
 });
 
-chrome.storage.onChanged.addListener((changes, area) =>{
-    Object.assign(storageData, changes);
+chrome.storage.onChanged.addListener((changes, area) => {
+    let rebind = false;
 
-    console.log(storageData);
+    for (const k in changes) {
+        if (k === "rig_information") {
+            //Apply new alert configuration data
+            Object.assign(dataCache.rig_information, changes.rig_information.newValue);
 
-    bindRigs();
+            rebind = true;
+        } else if (k === "rig_setup") {
+            //Apply new alert configuration data
+            Object.assign(dataCache.rig_setup, changes.rig_setup.newValue);
+
+            rebind = true;
+        }
+    }
+    if (rebind) {
+        console.log(dataCache);
+
+        bindRigs();
+    }
 });

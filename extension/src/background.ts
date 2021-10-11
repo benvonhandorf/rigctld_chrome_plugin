@@ -12,67 +12,13 @@ class AlertConfiguration {
     location?: string;
 }
 
-//TODO Local storage and configuration
-var alerts_by_program = new Map<string, AlertConfiguration[]>()
-alerts_by_program.set("pota", [{
-    location: "US-AK"
-},
-{
-    location: "US-AZ"
-},
-{
-    location: "US-HI"
-},
-{
-    location: "US-ME"
-},
-{
-    location: "US-MT"
-},
-{
-    location: "US-NM"
-},
-{
-    location: "US-OR"
-},
-{
-    location: "US-SD"
-},
-{
-    location: "US-WA"
-},
-{
-    location: "US-WY"
-},
-{
-    location: "US-TX"
-}
-]);
-
 const dataCache: any = {}
-
-// const set_sync_data = {
-//     rig_information: [
-//         new RigInformation("FT-891", RigType.Rigctld, new RigConfiguration("localhost", 4532)),
-//         new RigInformation("Gqrx", RigType.Gqrx, new RigConfiguration("localhost", 7356)),
-//     ]
-// };
-
-// const set_local_data = {
-//     rig_setup: [1]
-// }
-
-// chrome.storage.sync.set(set_sync_data, () => console.log("Saved sync data"));
-// chrome.storage.local.set(set_local_data, () => console.log("Saved local data"));
 
 const initDataCache = getAllStorageLocalData().then(items => {
     Object.assign(dataCache, items)
 }).then(() => getAllStorageSyncData())
     .then(items => {
         Object.assign(dataCache, items);
-
-        console.log("Storage loaded")
-        console.log(dataCache);
     });
 
 function getAllStorageLocalData() {
@@ -96,7 +42,7 @@ function getAllStorageSyncData() {
         // Asynchronously fetch all data from storage.sync.
         chrome.storage.sync.get(null, (items) => {
             // Pass any observed errors down the promise chain.
-            if (chrome.runtime.lastError) {
+            if (chrome.runtime.lastError) {     
                 return reject(chrome.runtime.lastError);
             }
             // Pass the data retrieved from storage down the promise chain.
@@ -108,6 +54,9 @@ function getAllStorageSyncData() {
 async function ensureDataCache() {
     try {
         await initDataCache;
+
+        console.log("ensureDataCache")
+        console.log(dataCache);
     } catch (e) {
         console.log("Error loading dataCache");
         console.log(e);
@@ -141,7 +90,7 @@ let handle_control_request = (request: ControlMessage) => {
 }
 
 let evaluate_spot_alerts = (spot: Spot): boolean => {
-    let alerts_for_program = alerts_by_program.get(spot.program)
+    let alerts_for_program = dataCache.alert_configuration[spot.program]
 
     if (alerts_for_program == null) {
         return false;
@@ -228,7 +177,10 @@ let evaluate_alerts_for_all_tabs = () => {
     try {
         for (const tab_id in dataCache.spots_by_tab) {
             const tab_id_number: number = +tab_id
-            evaluate_alerts_for_spots_by_tab(tab_id_number);
+
+            if(tab_id_number) {
+                evaluate_alerts_for_spots_by_tab(tab_id_number);
+            }
         }
     } catch (e) {
         console.log(e)
@@ -256,13 +208,20 @@ ensureDataCache().then(() => {
 });
 
 chrome.storage.onChanged.addListener((changes, area) =>{
-    Object.assign(dataCache, changes);
-
-    console.log(dataCache);
+    console.log(`Data changed - ${area}`)
+    console.log(changes);
 
     for(const k in changes) {
         if(k === "alert_configuration") {
-            evaluate_alerts_for_all_tabs();
+            //Apply new alert configuration data
+            console.log(dataCache);
+        
+            if(dataCache.alert_configuration) {
+                console.log("Update alert configuration");
+            // Object.assign(dataCache.alert_configuration, changes.alert_configuration.newValue);
+
+            // evaluate_alerts_for_all_tabs();
+            }
         }
     }
 });

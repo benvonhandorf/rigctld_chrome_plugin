@@ -10,7 +10,7 @@ const config = {
     object_matcher: path.join(__dirname, "src/object_matcher.js"),
     background: path.join(__dirname, "src/background.ts"),
     "pota-spotter-content": path.join(__dirname, "src/pota-spotter-content.ts"),
-    "sota-spotter-content": path.join(__dirname, "src/sota-spotter-content.js"),
+    "sota-spotter-content": path.join(__dirname, "src/sota-spotter-content.ts"),
   },
   output: {
     path: path.join(__dirname, "dist"),
