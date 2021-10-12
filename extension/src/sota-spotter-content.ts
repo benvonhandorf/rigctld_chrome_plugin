@@ -104,11 +104,6 @@ let perform_update = () => {
 }
 
 let enqueue_update = (evt: Event) => {
-    if ((evt.target as HTMLElement)?.closest(".col-6") != null) {
-        //Don't update every time the timer updates
-        return;
-    }
-
     if (event_handler_debounce) {
         window.clearTimeout(event_handler_debounce);
     }

@@ -90,7 +90,7 @@ let handle_control_request = (request: ControlMessage) => {
 }
 
 let evaluate_spot_alerts = (spot: Spot): boolean => {
-    let alerts_for_program = dataCache.alert_configuration[spot.program]
+    let alerts_for_program = dataCache?.alert_configuration[spot.program];
 
     if (alerts_for_program == null) {
         return false;

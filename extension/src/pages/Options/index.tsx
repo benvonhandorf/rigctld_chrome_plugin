@@ -32,25 +32,25 @@ getStorageItems().then((storageItems) => {
     bindRigs();
 });
 
-chrome.storage.onChanged.addListener((changes, area) => {
-    let rebind = false;
+// chrome.storage.onChanged.addListener((changes, area) => {
+//     let rebind = false;
 
-    for (const k in changes) {
-        if (k === "rig_information") {
-            //Apply new alert configuration data
-            Object.assign(dataCache.rig_information, changes.rig_information.newValue);
+//     for (const k in changes) {
+//         if (k === "rig_information") {
+//             //Apply new alert configuration data
+//             Object.assign(dataCache.rig_information, changes.rig_information.newValue);
 
-            rebind = true;
-        } else if (k === "rig_setup") {
-            //Apply new alert configuration data
-            Object.assign(dataCache.rig_setup, changes.rig_setup.newValue);
+//             rebind = true;
+//         } else if (k === "rig_setup") {
+//             //Apply new alert configuration data
+//             Object.assign(dataCache.rig_setup, changes.rig_setup.newValue);
 
-            rebind = true;
-        }
-    }
-    if (rebind) {
-        console.log(dataCache);
+//             rebind = true;
+//         }
+//     }
+//     if (rebind) {
+//         console.log(dataCache);
 
-        bindRigs();
-    }
-});
+//         bindRigs();
+//     }
+// });
