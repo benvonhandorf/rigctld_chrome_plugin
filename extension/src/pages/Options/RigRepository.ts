@@ -1,12 +1,11 @@
 import { RigInformation } from "../../RigConfiguration";
 
-
 export namespace RigRepository {
-    type ChangeRigActivation = (rig: RigInformation, active: boolean) => void;
-    type AddRig = (rig: RigInformation, active: boolean) => void;
-    type DeleteRig = (rig: RigInformation) => void;
+    export type ChangeRigActivation = (rig: RigInformation, active: boolean) => void;
+    export type AddRig = (rig: RigInformation, active: boolean) => void;
+    export type DeleteRig = (rig: RigInformation) => void;
 
-    class RigRepository {
+    export class RigRepository {
         constructor(readonly changeRigActivation: ChangeRigActivation, readonly addRig: AddRig, readonly deleteRig: DeleteRig) {
         }
     }
