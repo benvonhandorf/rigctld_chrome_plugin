@@ -136,7 +136,7 @@ let find_card_by_spot = (spot_to_find: Spot): HTMLElement | null => {
         if (card instanceof HTMLElement) {
             var spot_data = parse_card_data(card);
 
-            if (object_matcher.spots_same_unit_and_callsign(spot_to_find, spot_data)) {
+            if (object_matcher.spotsSameUnitAndCallsign(spot_to_find, spot_data)) {
                 return card;
             }
         }

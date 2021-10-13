@@ -55,6 +55,7 @@ export const evaluateSpotAlerts = (spot: Spot, alertConfigurations: AlertConfigu
 
     for (const alertConfig of alertsForProgram) {
         let directComparisonProperties = []
+        let failedMatch = false;
         let matchingFields: string[] = [];
 
         for (const property in alertConfig) {
@@ -64,7 +65,8 @@ export const evaluateSpotAlerts = (spot: Spot, alertConfigurations: AlertConfigu
                 if (bands && evaluateFrequencyForBands(spot.frequency, bands)) {
                     matchingFields.push("band")
                 } else {
-                    return undefined;
+                    failedMatch = true;
+                    break;
                 }
             } else if (property === "mode") {
                 let modes = alertConfig["mode"]
@@ -72,7 +74,8 @@ export const evaluateSpotAlerts = (spot: Spot, alertConfigurations: AlertConfigu
                 if (modes && evaluateMode(spot.mode, modes)) {
                     matchingFields.push("mode")
                 } else {
-                    return undefined;
+                    failedMatch = true;
+                    break;
                 }
             } else if (property === "program") {
                 //Already handled above, but account for the match
@@ -86,17 +89,20 @@ export const evaluateSpotAlerts = (spot: Spot, alertConfigurations: AlertConfigu
             if (object_matcher.evaluateObjectsForProperties(alertConfig, spot, directComparisonProperties)) {
                 matchingFields.push(...directComparisonProperties);
             } else {
-                return undefined;
+                failedMatch = true;
             }
         }
 
-        if (matchingFields.length) {
+        if (!failedMatch && matchingFields.length) {
             let alert: Alert = {
                 alert_fields: matchingFields,
                 frequency: spot.frequency,
                 mode: spot.mode,
                 callsign: spot.callsign,
-                program: spot.program
+                program: spot.program,
+                unit: spot.unit,
+                location: spot.location,
+                tab_id: spot.tab_id
             };
 
             return alert;

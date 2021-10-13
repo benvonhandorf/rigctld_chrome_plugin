@@ -6,10 +6,13 @@ import Spot from "../Spot";
 
 describe('evaluateSpotAlerts', () => {
     let testSpot: Spot = {
-        frequency: 14300000,
-        mode: "SSB",
-        callsign: "KN4COI",
-        program: "pota"
+        "callsign": "KN4COI",
+        "frequency": 14300000,
+        "location": "US-WA",
+        "mode": "SSB",
+        "program": "pota",
+        "tab_id": 3917,
+        "unit": "K-3259"
     }
 
     test('should return alert when alert configuration contains only program', () => {
@@ -68,7 +71,7 @@ describe('evaluateSpotAlerts', () => {
         expect(result?.mode).toEqual(testSpot.mode);
     })
 
-    test('alert frequency should match spot', () => {
+    test('alert location should match spot', () => {
         let alertConfiguration: AlertConfiguration = {
             callsign: "KN4COI",
             program: ["pota"]
@@ -146,6 +149,37 @@ describe('evaluateSpotAlerts', () => {
         const result: Alert | undefined = evaluateSpotAlerts(testSpot, [alertConfiguration])
 
         expect(result).toEqual(undefined);
+    })
+
+    test('Alert is triggered from second configuration', () => {
+        let spot = {
+            "callsign": "K1LOK",
+            "frequency": 7237000,
+            "location": "US-WA",
+            "mode": "SSB",
+            "program": "pota",
+            "tab_id": 3917,
+            "unit": "K-3259"
+        }
+
+        let alertConfiguration = [
+            {
+                "location": "US-AK",
+                "program": [
+                    "pota"
+                ]
+            },
+            {
+                "location": "US-WA",
+                "program": [
+                    "pota"
+                ]
+            },
+        ]
+
+        const result: Alert | undefined = evaluateSpotAlerts(spot, alertConfiguration)
+
+        expect(result).not.toEqual(undefined);
     })
 })
 

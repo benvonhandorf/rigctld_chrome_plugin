@@ -4,11 +4,12 @@ import Alert from "./Alert";
 import { Message, ControlMessage, HighlightMessage, SpotsMessage, RetrieveAlertsMessage, AlertsMessage, MessageType } from "./Messages";
 import { RigType, RigConfiguration, RigInformation } from "./RigConfiguration";
 import AlertConfiguration from "./AlertConfiguration";
+import { evaluateSpotAlerts } from "./AlertEvaluator";
 
 console.log("Background setup is beginning");
 
 //Transient and rebuilt from dataCache.spots_by_tab and alerts_by_program configuration, not stored
-var spotsToAlert: Alert[] = [];
+var currentAlerts: Alert[] = [];
 
 const dataCache: any = {}
 
@@ -94,67 +95,69 @@ let clearAlertsIndicator = () => {
 }
 
 let evaluateAlertsForSpotsByTab = (tab_id: number) => {
-    let tab_spots = dataCache.spots_by_tab[tab_id] || [];
+    let spotsForTab = dataCache.spots_by_tab[tab_id] || [];
 
     console.log(`Spot data for tab ${tab_id}: `);
-    console.log(tab_spots);
+    console.log(spotsForTab);
 
-    let vestigial_alerts_from_tab = spotsToAlert.filter((existing: Spot) => existing.tab_id == tab_id)
+    let vestigialAlertsFromTab = currentAlerts.filter((existing: Spot) => existing.tab_id == tab_id)
 
-    const potential_alert_spots: Alert[] = tab_spots.map((spot: Spot) => evaluateSpotAlerts(spot)).filter((item: Alert | unknown) => item !== null)
+    const alertsForCurrentSpots: Alert[] = spotsForTab.map((spot: Spot) => evaluateSpotAlerts(spot, dataCache.alert_configuration)).filter((item: Alert | unknown) => item)
 
-    if (potential_alert_spots.length) {
-        let new_alerts = false;
+    if (alertsForCurrentSpots.length) {
+        let hasNewAlerts = false;
 
-        for (const spot of potential_alert_spots) {
-            let existing_alerts = spotsToAlert.filter((existing) => object_matcher.spotsSameIncludingFrequency(spot, existing))
+        for (const alert of alertsForCurrentSpots) {
+            console.log(alert)
+            console.log(currentAlerts)
+            let existingAlerts = currentAlerts.filter((existing) => object_matcher.spotsSameIncludingFrequency(alert, existing))
 
-            if (!existing_alerts.length) {
-                spotsToAlert.push(spot)
+            if (!existingAlerts.length) {
+                currentAlerts.push(alert)
 
-                new_alerts = true
+                hasNewAlerts = true
             } else {
-                console.log(spot)
-                console.log(existing_alerts)
+                console.log(alert)
+                console.log(existingAlerts)
 
-                for (const existing_alert of existing_alerts) {
+                for (const existingAlert of existingAlerts) {
                     //Alerts that still match active data in the tab and the alert criteria
                     //aren't vestigial... remove them from that list.
-                    let alert_index = vestigial_alerts_from_tab.indexOf(existing_alert)
+                    let alertIndex = vestigialAlertsFromTab.indexOf(existingAlert)
 
-                    if (alert_index != -1) {
-                        vestigial_alerts_from_tab.splice(alert_index, 1)
+                    if (alertIndex != -1) {
+                        vestigialAlertsFromTab.splice(alertIndex, 1)
                     }
                 }
             }
         }
 
         console.log("Current alerts:");
-        console.log(spotsToAlert);
+        console.log(currentAlerts);
 
-        if (new_alerts) {
+        if (hasNewAlerts) {
             chrome.action.setIcon({ path: "images/signal_alert.png" });
         }
 
 
     }
 
-    for (const existing_alert of vestigial_alerts_from_tab) {
+    for (const existing_alert of vestigialAlertsFromTab) {
         //Remove any alerts which are no longer in the spot data for this tab or no longer match
         //the alert criteria
-        let alert_index = spotsToAlert.indexOf(existing_alert)
+        let alert_index = currentAlerts.indexOf(existing_alert)
 
-        spotsToAlert.splice(alert_index, 1)
+        currentAlerts.splice(alert_index, 1)
     }
 
-    if (spotsToAlert?.length) {
+    if (currentAlerts?.length) {
         //We leave the existing icon in place.  This will be cleared when alerts are viewed.
     } else {
         console.log("No spots still active");
         clearAlertsIndicator();
     }
 
-    chrome.runtime.sendMessage(new AlertsMessage(spotsToAlert));
+    chrome.runtime.sendMessage(new AlertsMessage(currentAlerts));
 }
 
 let evaluateAlertsForAllTabs = () => {
@@ -243,7 +246,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }).then(() => {
             chrome.action.setIcon({ path: "images/signal_empty.png" })
 
-            sendResponse(new AlertsMessage(spotsToAlert));
+            sendResponse(new AlertsMessage(currentAlerts));
         });
 
         return true;
