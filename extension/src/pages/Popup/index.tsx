@@ -14,8 +14,8 @@ import { AlertsMessage, MessageType, RetrieveAlertsMessage } from '../../Message
 // if (module.hot) module.hot.accept();
 
 let bind_alerts = (message: AlertsMessage) => {
-    if(message.spots != null) {
-        render(<Alerts alerts={message.spots} />, window.document.querySelector('#app-container'));
+    if(message.alerts != null) {
+        render(<Alerts alerts={message.alerts} />, window.document.querySelector('#app-container'));
     }
 }
 

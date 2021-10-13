@@ -14,9 +14,13 @@ import { RigInformation } from '../../RigConfiguration';
 import { getStorageItems } from '../../StorageUtil';
 import { RigRepository } from './RigRepository';
 
+import { AlertRepository } from './AlertRepository';
+import AlertConfigurationDisplay from './AlertConfigurationDisplay';
+import AlertConfiguration from '../../AlertConfiguration';
+
 const dataCache: any = {}
 
-const rig_repository : RigRepository.RigRepository = {
+const rigRepository : RigRepository.RigRepository = {
     changeRigActivation: function (rig: RigInformation, active: boolean): void {
         console.log(`Changing ${rig} to ${active}`)
         let rig_index = dataCache.rig_information.indexOf(rig);
@@ -65,8 +69,33 @@ const rig_repository : RigRepository.RigRepository = {
     }
 }
 
+const alertRepository: AlertRepository.AlertRepository = {
+    addAlertConfiguration: function (alert: AlertConfiguration): void {
+        console.log(alert);
+
+        dataCache.alert_configuration.push(alert);
+
+        chrome.storage.sync.set({alert_configuration : dataCache.alert_configuration});
+    },
+    deleteAlertConfiguration: function (alert: AlertConfiguration): void {
+        console.log(alert);
+
+        let alertIndex = dataCache.alert_configuration.indexOf(alert);
+
+        if(alertIndex != -1) {
+            dataCache.alert_configuration.splice(alertIndex, 1);
+
+            chrome.storage.sync.set({alert_configuration : dataCache.alert_configuration});
+        }
+    }
+}
+
 let bindRigs = () => {
-    render(<RigConfigurationDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rig_repository} />, window.document.querySelector('#app-container'));
+    render(<RigConfigurationDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rigRepository} />, window.document.querySelector('#rig-container'));
+}
+
+let bindAlerts = () => {
+    render(<AlertConfigurationDisplay alertConfiguration={dataCache.alert_configuration} alertRepository={alertRepository} />, window.document.querySelector('#alert-container'));
 }
 
 getStorageItems().then((storageItems) => {
@@ -75,27 +104,38 @@ getStorageItems().then((storageItems) => {
     console.log(dataCache);
 
     bindRigs();
+    bindAlerts();
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
-    let rebind = false;
+    let rebind_rigs = false;
+    let rebind_alerts = false;
 
     for (const k in changes) {
         if (k === "rig_information") {
             //Apply new alert configuration data
             Object.assign(dataCache.rig_information, changes.rig_information.newValue);
 
-            rebind = true;
+            rebind_rigs = true;
         } else if (k === "rig_setup") {
             //Apply new alert configuration data
             Object.assign(dataCache.rig_setup, changes.rig_setup.newValue);
 
-            rebind = true;
+            rebind_rigs = true;
+        } else if (k === "alert_configuration") {
+            Object.assign(dataCache.alert_configuration, changes.alert_configuration.newValue);
+
+            rebind_alerts = true;
         }
     }
-    if (rebind) {
+    if (rebind_rigs) {
         console.log(dataCache);
 
         bindRigs();
+    }
+    if (rebind_alerts) {
+        console.log(dataCache);
+
+        bindAlerts();
     }
 });

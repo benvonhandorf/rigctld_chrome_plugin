@@ -1,16 +1,14 @@
 import * as object_matcher from "./object_matcher";
-import Spot from "./Spot"
+import Spot from "./Spot";
+import Alert from "./Alert";
 import { Message, ControlMessage, HighlightMessage, SpotsMessage, RetrieveAlertsMessage, AlertsMessage, MessageType } from "./Messages";
 import { RigType, RigConfiguration, RigInformation } from "./RigConfiguration";
+import AlertConfiguration from "./AlertConfiguration";
 
 console.log("Background setup is beginning");
 
 //Transient and rebuilt from dataCache.spots_by_tab and alerts_by_program configuration, not stored
-var spots_to_alert: Spot[] = [];
-
-class AlertConfiguration {
-    location?: string;
-}
+var spots_to_alert: Alert[] = [];
 
 const dataCache: any = {}
 
@@ -42,7 +40,7 @@ function getAllStorageSyncData() {
         // Asynchronously fetch all data from storage.sync.
         chrome.storage.sync.get(null, (items) => {
             // Pass any observed errors down the promise chain.
-            if (chrome.runtime.lastError) {     
+            if (chrome.runtime.lastError) {
                 return reject(chrome.runtime.lastError);
             }
             // Pass the data retrieved from storage down the promise chain.
@@ -89,20 +87,30 @@ let handle_control_request = (request: ControlMessage) => {
     }
 }
 
-let evaluate_spot_alerts = (spot: Spot): boolean => {
-    let alerts_for_program = dataCache?.alert_configuration[spot.program];
+let evaluate_spot_alerts = (spot: Spot): Alert | unknown => {
+    let alerts_for_program = dataCache?.alert_configuration?.filter((alert_config: AlertConfiguration) => alert_config?.program?.includes(spot.program));
 
     if (alerts_for_program == null) {
-        return false;
+        return null;
     }
 
-    for (const alert_configuration of alerts_for_program) {
-        if (object_matcher.evaluate_objects(alert_configuration, spot)) {
-            return true;
+    for (const alert_config of alerts_for_program) {
+        if (object_matcher.evaluate_objects(alert_config, spot)) {
+            let matching_fields = Object.getOwnPropertyNames(alert_config);
+
+            let alert = { alert_fields: matching_fields };
+
+            Object.assign(alert, spot);
+
+            return alert;
         }
     }
 
-    return false
+    return null
+}
+
+let clear_alerts_indicator = () => {
+    chrome.action.setIcon({ path: "images/signal_empty.png" });
 }
 
 let evaluate_alerts_for_spots_by_tab = (tab_id: number) => {
@@ -113,7 +121,7 @@ let evaluate_alerts_for_spots_by_tab = (tab_id: number) => {
 
     let vestigial_alerts_from_tab = spots_to_alert.filter((existing: Spot) => existing.tab_id == tab_id)
 
-    const potential_alert_spots = tab_spots.filter((spot: Spot) => evaluate_spot_alerts(spot))
+    const potential_alert_spots: Alert[] = tab_spots.map((spot: Spot) => evaluate_spot_alerts(spot)).filter((item: Alert | unknown) => item !== null)
 
     if (potential_alert_spots.length) {
         let new_alerts = false;
@@ -163,7 +171,7 @@ let evaluate_alerts_for_spots_by_tab = (tab_id: number) => {
         //We leave the existing icon in place.  This will be cleared when alerts are viewed.
     } else {
         console.log("No spots still active");
-        chrome.action.setIcon({ path: "images/signal_empty.png" });
+        clear_alerts_indicator();
     }
 
     chrome.runtime.sendMessage(new AlertsMessage(spots_to_alert));
@@ -178,7 +186,7 @@ let evaluate_alerts_for_all_tabs = () => {
         for (const tab_id in dataCache.spots_by_tab) {
             const tab_id_number: number = +tab_id
 
-            if(tab_id_number) {
+            if (tab_id_number) {
                 evaluate_alerts_for_spots_by_tab(tab_id_number);
             }
         }
@@ -194,6 +202,10 @@ let handle_spots_data = (request: SpotsMessage, tab_id: number) => {
         spot.tab_id = tab_id;
     });
 
+    if (dataCache.spots_by_tab == null) {
+        dataCache.spots_by_tab = {};
+    }
+
     dataCache.spots_by_tab[tab_id] = request.spots;
 
     chrome.storage.local.set({ spots_by_tab: dataCache.spots_by_tab }, () => {
@@ -207,20 +219,22 @@ ensureDataCache().then(() => {
     evaluate_alerts_for_all_tabs();
 });
 
-chrome.storage.onChanged.addListener((changes, area) =>{
+chrome.storage.onChanged.addListener((changes, area) => {
     console.log(`Data changed - ${area}`)
     console.log(changes);
 
-    for(const k in changes) {
-        if(k === "alert_configuration") {
+    for (const k in changes) {
+        if (k === "alert_configuration") {
             //Apply new alert configuration data
             console.log(dataCache);
-        
-            if(dataCache.alert_configuration) {
-                console.log("Update alert configuration");
-            // Object.assign(dataCache.alert_configuration, changes.alert_configuration.newValue);
 
-            // evaluate_alerts_for_all_tabs();
+            if (dataCache.alert_configuration) {
+                console.log("Update alert configuration");
+                Object.assign(dataCache.alert_configuration, changes.alert_configuration.newValue);
+
+                clear_alerts_indicator();
+
+                evaluate_alerts_for_all_tabs();
             }
         }
     }

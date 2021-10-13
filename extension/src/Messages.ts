@@ -1,3 +1,4 @@
+import Alert from "./Alert";
 import { RigInformation } from "./RigConfiguration";
 import Spot from "./Spot";
 
@@ -43,10 +44,7 @@ export class RetrieveAlertsMessage implements Message {
 export class AlertsMessage implements Message {
     type = MessageType.Alerts;
 
-    spots: Spot[];
-
-    constructor(s: Spot[]) {
-        this.spots = s;
+    constructor(readonly alerts: Alert[]) {
     }
 }
 

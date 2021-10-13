@@ -7,11 +7,11 @@ const Alerts = (props: any) : JSX.Element => {
 
   if (alerts != null) {
     return (
-      <ul className="Alerts">
+      <div className="Alerts">
         {
           alerts.map((spot_alert) => <AlertSummary spot_alert={spot_alert}></AlertSummary>)
         }
-      </ul>
+      </div>
     );
   } else {
     return (<></>);
