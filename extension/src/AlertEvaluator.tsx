@@ -80,7 +80,9 @@ export const evaluateSpotAlerts = (spot: Spot, alertConfigurations: AlertConfigu
             } else if (property === "program") {
                 //Already handled above, but account for the match
                 matchingFields.push("program")
-            } else {
+            } else if (property === "alert_id") {
+                //Exclude alert_id from the comparison
+            } else{
                 directComparisonProperties.push(property);
             }
         }
