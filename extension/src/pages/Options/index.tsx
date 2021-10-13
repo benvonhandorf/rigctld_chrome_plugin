@@ -20,25 +20,25 @@ import AlertConfiguration from '../../AlertConfiguration';
 
 const dataCache: any = {}
 
-const rigRepository : RigRepository.RigRepository = {
+const rigRepository: RigRepository.RigRepository = {
     changeRigActivation: function (rig: RigInformation, active: boolean): void {
         console.log(`Changing ${rig} to ${active}`)
         let rig_index = dataCache.rig_information.indexOf(rig);
 
-        if(rig_index == -1) {
+        if (rig_index == -1) {
             console.log(`Unable to find ${rig} in ${dataCache.rig_information}`)
             return;
         }
 
-        if(active) {
-            if(dataCache?.rig_setup?.includes(rig_index)) {
+        if (active) {
+            if (dataCache?.rig_setup?.includes(rig_index)) {
                 console.log(`Rig ${rig} already present in rig_setup`);
                 return;
             } else {
                 dataCache?.rig_setup?.push(rig_index);
             }
         } else {
-            if(dataCache?.rig_setup?.includes(rig_index)) {
+            if (dataCache?.rig_setup?.includes(rig_index)) {
                 let index_index = dataCache?.rig_setup?.indexOf(rig_index);
                 dataCache?.rig_setup?.splice(index_index, 1);
             } else {
@@ -46,26 +46,35 @@ const rigRepository : RigRepository.RigRepository = {
                 return;
             }
         }
-        chrome.storage.local.set({rig_setup: dataCache.rig_setup});
+        chrome.storage.local.set({ rig_setup: dataCache.rig_setup });
     },
     addRig: function (rig: RigInformation, active: boolean): void {
-        let rig_index = dataCache.rig_information.indexOf(rig);
+        let rigIndex = dataCache.rig_information.findIndex((rig_candidate: RigInformation) => rig_candidate.id === rig.id);
 
-        if(rig_index != -1) {
+        if (rigIndex !== -1) {
             console.log(`Rig ${rig} already present in ${dataCache.rig_information}`)
             return;
         }
 
-        rig_index = dataCache.rig_information.push(rig) - 1;
+        dataCache.rig_information.push(rig) - 1;
 
-        if(active) {
-            dataCache?.rig_setup.push(rig_index)
+        if (active) {
+            dataCache?.rig_setup.push(rig.id)
         }
 
-        chrome.storage.local.set({rig_information: dataCache.rig_information, rig_setup: dataCache.rig_setup});
+        chrome.storage.local.set({ rig_information: dataCache.rig_information, rig_setup: dataCache.rig_setup });
     },
-    deleteRig: function (rig: RigInformation): void {
-        throw new Error('Function not implemented.');
+    deleteRig: function (rigId: string): void {
+        let rigIndex = dataCache.rig_information.findIndex((rig_candidate: RigInformation) => rig_candidate.id === rigId);
+
+        if (rigIndex !== -1) {
+            dataCache.rig_information.splice(rigIndex, 1);
+
+            dataCache.rig_setup = dataCache.rig_setup.filter((id:string) => id !== rigId);
+
+            chrome.storage.sync.set({ rig_information: dataCache.rig_information, rig_setup: dataCache.rig_setup });
+        }
+
     }
 }
 
@@ -73,19 +82,24 @@ const alertRepository: AlertRepository.AlertRepository = {
     addAlertConfiguration: function (alert: AlertConfiguration): void {
         console.log(alert);
 
-        dataCache.alert_configuration.push(alert);
 
-        chrome.storage.sync.set({alert_configuration : dataCache.alert_configuration});
+        let alertIndex = dataCache.alert_configuration.findIndex((config: AlertConfiguration) => config.alert_id === alert.alert_id);
+
+        if (alertIndex === -1) {
+            dataCache.alert_configuration.push(alert);
+
+            chrome.storage.sync.set({ alert_configuration: dataCache.alert_configuration });
+        }
     },
-    deleteAlertConfiguration: function (alert: AlertConfiguration): void {
+    deleteAlertConfiguration: function (alertId: string): void {
         console.log(alert);
 
-        let alertIndex = dataCache.alert_configuration.indexOf(alert);
+        let alertIndex = dataCache.alert_configuration.findIndex((config: AlertConfiguration) => config.alert_id === alertId);
 
-        if(alertIndex != -1) {
+        if (alertIndex !== -1) {
             dataCache.alert_configuration.splice(alertIndex, 1);
 
-            chrome.storage.sync.set({alert_configuration : dataCache.alert_configuration});
+            chrome.storage.sync.set({ alert_configuration: dataCache.alert_configuration });
         }
     }
 }

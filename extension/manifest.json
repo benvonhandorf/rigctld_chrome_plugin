@@ -6,7 +6,8 @@
   "permissions": [
     "nativeMessaging",
     "clipboardWrite",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://pota.app/#/"

@@ -2,6 +2,7 @@ import { describe, it } from "jest-circus";
 import Alert from "../Alert";
 import AlertConfiguration from "../AlertConfiguration";
 import { evaluateSpotAlerts, evaluateFrequencyForBands, evaluateMode } from "../AlertEvaluator";
+import generateRandomStringId from "../random_id";
 import Spot from "../Spot"; 
 
 describe('evaluateSpotAlerts', () => {
@@ -17,6 +18,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('should return alert when alert configuration contains only program', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             program: ["pota"]
         }
 
@@ -28,6 +30,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('should return null when callsign is not an exact match', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: "AB4EN",
             program: ["pota"]
         }
@@ -39,6 +42,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('alert callsign should match spot', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: "KN4COI",
             program: ["pota"]
         }
@@ -51,6 +55,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('alert frequency should match spot', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: "KN4COI",
             program: ["pota"]
         }
@@ -62,6 +67,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('alert mode should match spot', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: "KN4COI",
             program: ["pota"]
         }
@@ -73,6 +79,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('alert location should match spot', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: "KN4COI",
             program: ["pota"]
         }
@@ -84,6 +91,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('alert unit should match spot', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: "KN4COI",
             program: ["pota"]
         }
@@ -95,6 +103,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('Band mismatch should prevent alert', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: "KN4COI",
             band: ["40m"],
             program: ["pota"]
@@ -107,6 +116,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('Band match should present alert', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             band: ["20m"],
             program: ["pota"]
         }
@@ -119,6 +129,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('SSB or CW spot should match SSB', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             mode: ["SSB", "CW"],
             program: ["pota"]
         }
@@ -131,6 +142,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('CW alert should not match SSB', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             mode: ["CW"],
             program: ["pota"]
         }
@@ -142,6 +154,7 @@ describe('evaluateSpotAlerts', () => {
 
     test('DIGITAL alert should not match SSB', () => {
         let alertConfiguration: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             mode: ["DIGITAL"],
             program: ["pota"]
         }
@@ -164,12 +177,14 @@ describe('evaluateSpotAlerts', () => {
 
         let alertConfiguration = [
             {
+                alert_id: "a",
                 "location": "US-AK",
                 "program": [
                     "pota"
                 ]
             },
             {
+                alert_id: "b",
                 "location": "US-WA",
                 "program": [
                     "pota"
@@ -180,6 +195,7 @@ describe('evaluateSpotAlerts', () => {
         const result: Alert | undefined = evaluateSpotAlerts(spot, alertConfiguration)
 
         expect(result).not.toEqual(undefined);
+        expect(result?.alert_id).toEqual("b");
     })
 })
 

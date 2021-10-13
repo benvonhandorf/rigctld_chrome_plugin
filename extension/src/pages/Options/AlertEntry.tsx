@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import { TextField, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Button, FormGroup, Checkbox, FormControlLabel, FormLabel } from '@mui/material';
 import { AlertRepository } from './AlertRepository';
 import AlertConfiguration from '../../AlertConfiguration';
+import generateRandomStringId from '../../random_id';
 
 const ALL_PROGRAMS = ["pota", "sota"];
 const ALL_BANDS = ["160m", "80m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m", "2m", "70cm"];
@@ -76,6 +77,7 @@ const AlertEntry = (props: any) => {
 
     const addAlert = () => {
         let new_alert: AlertConfiguration = {
+            alert_id: generateRandomStringId(),
             callsign: callsign?.length ? callsign : undefined,
             location: callsign?.length ? callsign : undefined,
             unit: callsign?.length ? callsign : undefined,

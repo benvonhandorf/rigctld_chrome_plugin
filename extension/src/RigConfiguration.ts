@@ -6,23 +6,12 @@ export enum RigType {
 }
 
 export class RigConfiguration {
-    host: string;
-    port: number;
-
-    constructor(h: string, p: number) {
-        this.host = h;
-        this.port = p;
+    constructor(readonly host: string, readonly port: number) {
     }
 }
 
 export class RigInformation {
-    name: string;
-    type: RigType;
-    config: RigConfiguration;
+    constructor(readonly id: string, readonly name: string, readonly type: RigType, readonly config: RigConfiguration) {
 
-    constructor(n: string, t: RigType, cc: RigConfiguration) {
-        this.name = n;
-        this.type = t;
-        this.config = cc;
     }
 }

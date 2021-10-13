@@ -68,8 +68,8 @@ let handleControlRequest = (request: ControlMessage) => {
         return;
     }
 
-    for (const rig_index of dataCache.rig_setup) {
-        const rig_information = dataCache.rig_information[rig_index]
+    for (const rigId of dataCache.rig_setup) {
+        const rig_information = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId);
 
         console.log("Control request: ");
         request.rig = rig_information;
@@ -79,7 +79,7 @@ let handleControlRequest = (request: ControlMessage) => {
             chrome.runtime.sendNativeMessage('com.skyironstudio.rigctld_native_messaging_host',
                 request,
                 function (response) {
-                    console.log("Received");
+                    console.log(`Received from rig ${rig_information.name}:`);
                     console.log(response);
                 });
         } catch (e) {
@@ -88,7 +88,14 @@ let handleControlRequest = (request: ControlMessage) => {
     }
 }
 
+let setAlertsIndicator = () => {
+    chrome.action.setIcon({ path: "images/signal_alert.png" });
 
+    if (true) {
+        var alertAudio = new Audio(chrome.runtime.getURL("audio/alert.mp3"));
+        alertAudio.play();
+    }
+}
 
 let clearAlertsIndicator = () => {
     chrome.action.setIcon({ path: "images/signal_empty.png" });
@@ -117,9 +124,6 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
 
                 hasNewAlerts = true
             } else {
-                console.log(alert)
-                console.log(existingAlerts)
-
                 for (const existingAlert of existingAlerts) {
                     //Alerts that still match active data in the tab and the alert criteria
                     //aren't vestigial... remove them from that list.
@@ -136,10 +140,8 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
         console.log(currentAlerts);
 
         if (hasNewAlerts) {
-            chrome.action.setIcon({ path: "images/signal_alert.png" });
+            setAlertsIndicator();
         }
-
-
     }
 
     for (const existing_alert of vestigialAlertsFromTab) {
@@ -153,7 +155,7 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
     if (currentAlerts?.length) {
         //We leave the existing icon in place.  This will be cleared when alerts are viewed.
     } else {
-        console.log("No spots still active");
+        console.log("No alerts still active");
         clearAlertsIndicator();
     }
 
@@ -166,12 +168,43 @@ let evaluateAlertsForAllTabs = () => {
     }
 
     try {
+        let promises = [];
+        let needsSaving = false;
+
         for (const tab_id in dataCache.spots_by_tab) {
             const tab_id_number: number = +tab_id
 
             if (tab_id_number) {
-                evaluateAlertsForSpotsByTab(tab_id_number);
+                promises.push(
+                    chrome.tabs.get(tab_id_number)
+                        .then((tab) => {
+                            evaluateAlertsForSpotsByTab(tab_id_number);
+                        }).catch((e) => {
+                            console.log(`Tab ${tab_id_number} no longer valid`)
+                            needsSaving = true;
+
+                            currentAlerts = currentAlerts.filter((alert) => alert.tab_id !== tab_id_number);
+                            delete dataCache.spots_by_tab[tab_id];
+
+                            if (!currentAlerts?.length) {
+                                console.log("No alerts still active");
+                                clearAlertsIndicator();
+                            }
+                        }));
             }
+        }
+
+        if (needsSaving) {
+            console.log("Persisting spots_by_tab after modification");
+
+            Promise.all(promises)
+                .then(() => {
+                    chrome.storage.local.set({ spots_by_tab: dataCache.spots_by_tab })
+                        .then(() => {
+                            console.log("Spot data serialized")
+                            console.log(dataCache.spots_by_tab)
+                        });
+                });
         }
     } catch (e) {
         console.log(e)
@@ -207,18 +240,29 @@ chrome.storage.onChanged.addListener((changes, area) => {
     console.log(changes);
 
     for (const k in changes) {
-        if (k === "alert_configuration") {
-            //Apply new alert configuration data
-            console.log(dataCache);
+        if (k === "rig_information") {
+            console.log("Update rig_information");
+            //Apply new rig configuration data
+            dataCache.rig_information = []
 
-            if (dataCache.alert_configuration) {
-                console.log("Update alert configuration");
-                Object.assign(dataCache.alert_configuration, changes.alert_configuration.newValue);
+            Object.assign(dataCache.rig_information, changes.rig_information.newValue);
+        } else if (k === "rig_setup") {
+            //Apply new rig configuration data
+            console.log("Update rig_setup");
 
-                clearAlertsIndicator();
+            dataCache.rig_setup = [];
 
-                evaluateAlertsForAllTabs();
-            }
+            Object.assign(dataCache.rig_setup, changes.rig_setup.newValue)
+
+            console.log(dataCache.rig_setup);
+        } else if (k === "alert_configuration") {
+            dataCache.alert_configuration = [];
+            console.log("Update alert configuration");
+            Object.assign(dataCache.alert_configuration, changes.alert_configuration.newValue);
+
+            clearAlertsIndicator();
+
+            evaluateAlertsForAllTabs();
         }
     }
 });

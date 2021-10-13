@@ -95,6 +95,7 @@ export const evaluateSpotAlerts = (spot: Spot, alertConfigurations: AlertConfigu
 
         if (!failedMatch && matchingFields.length) {
             let alert: Alert = {
+                alert_id: alertConfig.alert_id,
                 alert_fields: matchingFields,
                 frequency: spot.frequency,
                 mode: spot.mode,

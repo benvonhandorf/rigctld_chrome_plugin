@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import { TextField, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Button } from '@mui/material';
 import { RigRepository } from './RigRepository';
 import { RigConfiguration, RigInformation, RigType } from '../../RigConfiguration';
+import generateRandomStringId from '../../random_id';
 
 const RigEntry = (props: any) => {
     const rig_repository: RigRepository.RigRepository = props.rig_repository;
@@ -39,14 +40,13 @@ const RigEntry = (props: any) => {
     }
 
     const add_rig = () => {
-        const rig_type = rigType;
+        const rigConfiguration = new RigConfiguration(hostname, port)
 
-        const rig_configuration = new RigConfiguration(hostname, port)
-
-        const rig = new RigInformation(rigName, rigType, rig_configuration)
+        const rig = new RigInformation(generateRandomStringId(), rigName, rigType, rigConfiguration)
 
         rig_repository.addRig(rig, true)
     }
+    
     return (
         <div>
             <h1>Rig Configuration</h1>
