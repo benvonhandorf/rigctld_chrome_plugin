@@ -59,33 +59,48 @@ def process_message(message):
         log.write(json.dumps(message, sort_keys=True, indent=4))
         log.write('\n')
 
-        rig_connection = get_rig_connection(message["rig"])
+        if message["type"] == "control":
 
-        spot = message["spot"]
+            log.write(f'preparing connection\n')
 
-        frequency = spot["frequency"]
-        raw_mode = spot["mode"].upper()
+            try:
+                rig_connection = get_rig_connection(message["rig"])
+            except Exception as err:
+                log.write(f'Error creating connection: {err}\n')
+                return
 
-        mapped_mode = mode_lookup.get(raw_mode)
+            log.write(f'connection prepared\n')
 
-        mode_string = mapped_mode["mode"](frequency)
-        passband = mapped_mode["passband"]
-    
-        rig_connection.connect()
+            spot = message["spot"]
 
-        # Mode gets set first so that the frequency is set properly when switching
-        # to/from CW
-        result = rig_connection.set_mode(mode_string, passband)
-        log.write(f'rigctld: {mode_string} {passband} {result}')
+            frequency = spot["frequency"]
+            raw_mode = spot["mode"].upper()
 
-        result = rig_connection.set_frequency(frequency)
-        log.write(f'rigctld: {frequency} {result}')
+            mapped_mode = mode_lookup.get(raw_mode)
 
-        result = rig_connection.get_radio_state()
+            mode_string = mapped_mode["mode"](frequency)
+            passband = mapped_mode["passband"]
 
-        rig_connection.disconnect()
+            log.write(f'parsed: {frequency} {raw_mode}->{mode_string} {passband}\n')
+        
+            rig_connection.connect()
 
-        send_message(result)
+            # Mode gets set first so that the frequency is set properly when switching
+            # to/from CW
+            result = rig_connection.set_mode(mode_string, passband)
+            log.write(f'rigctld: {mode_string} {passband} {result}\n')
+
+            result = rig_connection.set_frequency(frequency)
+            log.write(f'rigctld: {frequency} {result}\n')
+
+            result = rig_connection.get_radio_state()
+
+            rig_connection.disconnect()
+
+            send_message(result)
+        else:
+            log.write("Unknown message type\n")
+
 
 while True:
     message = get_message()

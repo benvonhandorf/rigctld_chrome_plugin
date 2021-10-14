@@ -23,23 +23,17 @@ const dataCache: any = {}
 const rigRepository: RigRepository.RigRepository = {
     changeRigActivation: function (rig: RigInformation, active: boolean): void {
         console.log(`Changing ${rig} to ${active}`)
-        let rig_index = dataCache.rig_information.indexOf(rig);
-
-        if (rig_index == -1) {
-            console.log(`Unable to find ${rig} in ${dataCache.rig_information}`)
-            return;
-        }
-
+        
         if (active) {
-            if (dataCache?.rig_setup?.includes(rig_index)) {
+            if (dataCache?.rig_setup?.includes(rig.id)) {
                 console.log(`Rig ${rig} already present in rig_setup`);
                 return;
             } else {
-                dataCache?.rig_setup?.push(rig_index);
+                dataCache?.rig_setup?.push(rig.id);
             }
         } else {
-            if (dataCache?.rig_setup?.includes(rig_index)) {
-                let index_index = dataCache?.rig_setup?.indexOf(rig_index);
+            if (dataCache?.rig_setup?.includes(rig.id)) {
+                let index_index = dataCache?.rig_setup?.indexOf(rig.id);
                 dataCache?.rig_setup?.splice(index_index, 1);
             } else {
                 console.log(`Rig ${rig} already not present in rig_setup`);
