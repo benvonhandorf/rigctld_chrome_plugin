@@ -92,8 +92,8 @@ let setAlertsIndicator = () => {
     chrome.action.setIcon({ path: "images/signal_alert.png" });
 
     if (true) {
-        var alertAudio = new Audio(chrome.runtime.getURL("audio/alert.mp3"));
-        alertAudio.play();
+        // var alertAudio = new Audio(chrome.runtime.getURL("audio/alert.mp3"));
+        // alertAudio.play();
     }
 }
 
