@@ -3,6 +3,7 @@ import React from 'react';
 import Alert from '../../Alert';
 
 const AlertSummary = (props: any) => {
+  let highlightAlert: (alert: Alert) => void = props.highlightAlert;
   let spot_alert: Alert = props.spot_alert;
   let alert_highlighter 
 
@@ -15,12 +16,12 @@ const AlertSummary = (props: any) => {
     }
   }
 
-  const alert_click = () => {
-
+  const alertClick = () => {
+    highlightAlert(spot_alert);
   }
 
   return (
-    <Card className="Alert" onClick={alert_click}>
+    <Card className="Alert" onClick={() => alertClick()}>
       {render_field(spot_alert, "callsign")}
       {render_field(spot_alert, "unit")}
       {render_field(spot_alert, "frequency")}

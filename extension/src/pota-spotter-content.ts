@@ -1,6 +1,6 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot"
-import { Message, ControlMessage, SpotsMessage, HighlightMessage } from "./Messages";
+import { Message, ControlMessage, SpotsMessage, HighlightMessage, MessageType } from "./Messages";
 
 let event_handler_debounce: any = null;
 
@@ -160,6 +160,7 @@ let highlight_spot = (spot_to_highlight: Spot | null) => {
 
         if (card) {
             card.classList.add(highlighted_card_class);
+            card.scrollIntoView();
             highlighted_card = card;
         }
     }
@@ -194,12 +195,18 @@ let setup = () => {
 setup();
 
 chrome.runtime.onMessage.addListener(
-    function (request: Message, sender, sendResponse) {
-        if (request instanceof HighlightMessage) {
-            highlight_spot(request.spot);
+    function (request, sender, sendResponse) {
+        console.log(request);
+        
+        if (request.type === MessageType.Highlight) {
+            const highlightMessage : HighlightMessage = request;
 
-            sendResponse({ ack: true });
+            if(highlightMessage.spot.program === "pota") {
+                highlight_spot(highlightMessage.spot);
+            }
         }
+
+        return false;
     }
 );
 

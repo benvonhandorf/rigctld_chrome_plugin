@@ -3,6 +3,6 @@ div.frequency_entry {
     text-decoration: underline coral;
 }
 
-div.highlighted_spot {
-    background-color: coral;
+div.highlighted_spot.theme--light.v-card {
+    background-color: #FF7F5088;
 }

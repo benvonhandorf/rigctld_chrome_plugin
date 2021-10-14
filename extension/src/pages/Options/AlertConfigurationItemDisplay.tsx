@@ -13,9 +13,7 @@ const AlertConfigurationItemDisplay = (props: any) => {
         if (section_data) {
             return (
                 <div>{section_title}: {
-                    section_data.map((item) => {
-                        <span>{item}</span>
-                    })
+                    section_data.map((item) => {{<span>{item}</span>}})
                 }
                 </div>
             )

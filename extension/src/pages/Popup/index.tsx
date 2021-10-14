@@ -9,32 +9,38 @@ import '@fontsource/roboto/700.css';
 
 import Alerts from './Alerts';
 import './index.css';
-import { AlertsMessage, MessageType, RetrieveAlertsMessage } from '../../Messages';
+import { AlertsMessage, HighlightMessage, MessageType, RetrieveAlertsMessage } from '../../Messages';
+import Alert from '../../Alert';
 
 // if (module.hot) module.hot.accept();
 
-let bind_alerts = (message: AlertsMessage) => {
+const highlightAlert = (alert: Alert) => {
+    console.log(alert);
+    chrome.runtime.sendMessage(new HighlightMessage(alert));
+}
+
+const bindAlerts = (message: AlertsMessage) => {
     if(message.alerts != null) {
-        render(<Alerts alerts={message.alerts} />, window.document.querySelector('#app-container'));
+        render(<Alerts alerts={message.alerts} highlightAlert={highlightAlert} />, window.document.querySelector('#app-container'));
     }
 }
 
-let retrieve_alerts = () => {
+const retrieveAlerts = () => {
     let request = new RetrieveAlertsMessage();
 
     chrome.runtime.sendMessage(request, (response) => {
         console.log(response);
-        bind_alerts(response);
+        bindAlerts(response);
     });
 
 };
 
-retrieve_alerts();
+retrieveAlerts();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === MessageType.Alerts) {
         //New alert data is avalable
-        bind_alerts(request);
+        bindAlerts(request);
     }
 
     return false;

@@ -51,9 +51,7 @@ export class AlertsMessage implements Message {
 
 export class HighlightMessage implements Message {
     type = MessageType.Highlight;
-    spot: Spot;
 
-    constructor(s: Spot) {
-        this.spot = s;
+    constructor(readonly spot: Spot) {
     }
 }

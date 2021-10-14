@@ -1,15 +1,17 @@
 import React from 'react';
+import Alert from '../../Alert';
 import Spot from '../../Spot';
 import AlertSummary from './AlertSummary';
 
 const Alerts = (props: any) : JSX.Element => {
-  let alerts : Spot[] = props.alerts
+  let alerts : Alert[] = props.alerts;
+  const highlightAlert: (alert: Alert) => void = props.highlightAlert;
 
   if (alerts != null) {
     return (
       <div className="Alerts">
         {
-          alerts.map((spot_alert) => <AlertSummary spot_alert={spot_alert}></AlertSummary>)
+          alerts.map((spot_alert) => <AlertSummary spot_alert={spot_alert} highlightAlert={highlightAlert}></AlertSummary>)
         }
       </div>
     );

@@ -294,6 +294,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         return true;
+    } else if(request.type === MessageType.Highlight) {
+        //The tab itself will do the highlighting and scrolling, but it's our job to activate the tab.
+        const highlightMessage: HighlightMessage = request
+
+        chrome.tabs.update(request.spot.tab_id, { active: true} );
+
+        //Resend the message to the specific tab
+        chrome.tabs.sendMessage(request.spot.tab_id, request);
+
+        return false;
     } else {
         console.log("Unknown message type");
         console.log(request);
