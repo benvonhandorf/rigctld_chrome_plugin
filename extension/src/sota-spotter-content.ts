@@ -15,7 +15,7 @@ let parse_entry_data = (card: HTMLElement): Spot | null => {
 
         let frequency = parseFloat(match?.groups?.frequency || "0");
 
-        let mode = match?.groups?.mode || "SSB";
+        let mode = match?.groups?.mode?.toUpperCase() || "SSB";
 
         let callsign = (card.querySelector(".col-7 div span strong") as HTMLElement).innerText
         let unit_text = (card.querySelector(".col-7 a strong") as HTMLElement).innerText

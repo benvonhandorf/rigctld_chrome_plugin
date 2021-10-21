@@ -1,10 +1,11 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot";
 import Alert from "./Alert";
-import { Message, ControlMessage, HighlightMessage, SpotsMessage, RetrieveAlertsMessage, AlertsMessage, MessageType } from "./Messages";
+import { Message, ControlMessage, HighlightMessage, SpotsMessage, RetrieveAlertsMessage, AlertsMessage, MessageType, TabsMessage, HighlightTabMessage } from "./Messages";
 import { RigType, RigConfiguration, RigInformation } from "./RigConfiguration";
 import AlertConfiguration from "./AlertConfiguration";
 import { evaluateSpotAlerts } from "./AlertEvaluator";
+import TabDescriptor from "./TabDescriptor";
 
 console.log("Background setup is beginning");
 
@@ -212,6 +213,37 @@ let evaluateAlertsForAllTabs = () => {
     }
 }
 
+let constructTabList = () : TabDescriptor[] => {
+    let results : TabDescriptor[] = [];
+
+    if (dataCache.spots_by_tab == null) {
+        return results;
+    }
+    
+    for (const tab_id in dataCache.spots_by_tab) {
+        const tab_id_number: number = +tab_id;
+
+        const program = dataCache.spots_by_tab[tab_id][0]?.program || "Unknown";
+        const count = (dataCache.spots_by_tab[tab_id] || []).length;
+        const cw_count = (dataCache.spots_by_tab[tab_id]?.filter( (spot: Spot) => spot.mode === "CW") || []).length
+        const ssb_count = (dataCache.spots_by_tab[tab_id]?.filter( (spot: Spot) => spot.mode === "SSB") || []).length
+
+        const tab_descriptor = new TabDescriptor(tab_id_number, program, count, cw_count, ssb_count );
+
+        results.push(tab_descriptor);
+    }
+
+    return results;
+}
+
+let constructTabMessage = () : TabsMessage => {
+    const tabs = constructTabList();
+    
+    const message = new TabsMessage(tabs);
+
+    return message;
+}
+
 let handleSpotsData = (request: SpotsMessage, tab_id: number) => {
 
     request.spots.forEach(spot => {
@@ -229,6 +261,8 @@ let handleSpotsData = (request: SpotsMessage, tab_id: number) => {
     });
 
     evaluateAlertsForSpotsByTab(tab_id);
+
+    chrome.runtime.sendMessage(constructTabMessage);
 }
 
 ensureDataCache().then(() => {
@@ -294,14 +328,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         return true;
+    } else if (request.type === MessageType.RetrieveTabs) {
+        ensureDataCache().then(() => {
+            evaluateAlertsForAllTabs();
+        }).then(() => {
+            const message = constructTabMessage();
+
+            sendResponse(message);
+        });
+
+        return true;
     } else if(request.type === MessageType.Highlight) {
         //The tab itself will do the highlighting and scrolling, but it's our job to activate the tab.
         const highlightMessage: HighlightMessage = request
 
         chrome.tabs.update(request.spot.tab_id, { active: true} );
 
-        //Resend the message to the specific tab
-        chrome.tabs.sendMessage(request.spot.tab_id, request);
+        if(request.spot) {
+            //Resend the message to the specific tab
+            chrome.tabs.sendMessage(request.spot.tab_id, request);
+        }
+
+        return false;
+    } else if(request.type === MessageType.HighlightTab) {
+        //The tab itself will do the highlighting and scrolling, but it's our job to activate the tab.
+        const highlightMessage: HighlightTabMessage = request
+
+        chrome.tabs.update(request.tab_id, { active: true} );
 
         return false;
     } else {

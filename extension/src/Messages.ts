@@ -1,14 +1,18 @@
 import Alert from "./Alert";
 import { RigInformation } from "./RigConfiguration";
 import Spot from "./Spot";
+import TabDescriptor from "./TabDescriptor";
 
 
 export enum MessageType {
     Control = "control",
     Highlight = "highlight",
+    HighlightTab = "highlight_tabzs",
     Spots = "spots",
     RetrieveAlerts = "retrieve_alerts",
-    Alerts = "alerts"
+    Alerts = "alerts",    
+    RetrieveTabs = "retrieve_tabs",
+    Tabs = "tabs"
 };
 
 export interface Message {
@@ -48,10 +52,29 @@ export class AlertsMessage implements Message {
     }
 }
 
+export class TabsMessage implements Message {
+    type = MessageType.Tabs;
+
+    constructor(readonly tabs: TabDescriptor[]) {
+    }
+}
+
+export class RetrieveTabsMessage implements Message {
+    type = MessageType.RetrieveTabs;
+}
+
+
 
 export class HighlightMessage implements Message {
     type = MessageType.Highlight;
 
     constructor(readonly spot: Spot) {
+    }
+}
+
+export class HighlightTabMessage implements Message {
+    type = MessageType.HighlightTab;
+
+    constructor(readonly tab_id: number) {
     }
 }

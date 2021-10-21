@@ -27,7 +27,7 @@ let parse_card_data = (card: any): Spot | null => {
             frequency = frequency * 1000000;
         }
 
-        let mode: string = match?.groups?.mode || "SSB"
+        let mode: string = match?.groups?.mode?.toUpperCase() || "SSB"
 
         let callsign_text = card.getElementsByClassName("v-card__title")[0]?.children[0]?.children[0]?.innerText;
 
