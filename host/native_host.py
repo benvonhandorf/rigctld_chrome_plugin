@@ -32,22 +32,10 @@ def send_message(response):
     sys.stdout.buffer.write(encoded_message['content'])
     sys.stdout.buffer.flush()
 
-def ssb_mode_from_frequency(frequency):
-    if frequency > 10000000:
-        return "USB"
-    else:
-        return "LSB"
-
-mode_lookup = {
-    "FT8": {"mode": lambda frequency: "PKTUSB", "passband": 3000},
-    "CW": {"mode": lambda frequency: "CWU", "passband": 500},
-    "SSB": {"mode": ssb_mode_from_frequency, "passband": 2600},
-}
-
 def get_rig_connection(rig_info):
     rig_config = rig_info["config"]
 
-    if rig_info["type"] == "rigctrld":
+    if rig_info["type"] == "rigctld":
         rig_connection = RigctldConnection(rig_config["host"], rig_config["port"])
     else:
         rig_connection = GqrxConnection(rig_config["host"], rig_config["port"])
@@ -69,17 +57,14 @@ def process_message(message):
                 log.write(f'Error creating connection: {err}\n')
                 return
 
-            log.write(f'connection prepared\n')
+            log.write(f'connection prepared - {type(rig_connection)}\n')
 
             spot = message["spot"]
 
             frequency = spot["frequency"]
             raw_mode = spot["mode"].upper()
 
-            mapped_mode = mode_lookup.get(raw_mode)
-
-            mode_string = mapped_mode["mode"](frequency)
-            passband = mapped_mode["passband"]
+            [mode_string, passband] = rig_connection.mode_passband_lookup(raw_mode, frequency)
 
             log.write(f'parsed: {frequency} {raw_mode}->{mode_string} {passband}\n')
         
@@ -94,6 +79,8 @@ def process_message(message):
             log.write(f'rigctld: {frequency} {result}\n')
 
             result = rig_connection.get_radio_state()
+
+            log.write(f'Radio State: {result}')
 
             rig_connection.disconnect()
 

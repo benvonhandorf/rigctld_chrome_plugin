@@ -134,3 +134,23 @@ class GqrxConnection:
         result.update(self.get_mode())
 
         return result
+
+    def ssb_mode_from_frequency(frequency):
+        if frequency > 10000000:
+            return "USB"
+        else:
+            return "LSB"
+
+    mode_lookup = {
+        "FT8": {"mode": lambda frequency: "PKTUSB", "passband": 3000},
+        "CW": {"mode": lambda frequency: "CWU", "passband": 500},
+        "SSB": {"mode": ssb_mode_from_frequency, "passband": 2600},
+    }
+
+    def mode_passband_lookup(self, raw_mode, frequency):
+        mapped_mode = GqrxConnection.mode_lookup.get(raw_mode)
+
+        mode_string = mapped_mode["mode"](frequency)
+        passband = mapped_mode["passband"]
+
+        return [mode_string, passband]

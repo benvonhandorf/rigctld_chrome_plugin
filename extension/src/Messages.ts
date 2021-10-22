@@ -16,37 +16,31 @@ export enum MessageType {
 };
 
 export interface Message {
-    type: MessageType;
+    readonly type: MessageType;
 };
 
 
 export class ControlMessage implements Message {
-    type = MessageType.Control;
-    spot: Spot;
+    readonly type = MessageType.Control;
     rig?: RigInformation;
 
-    constructor(s: Spot) {
-        this.spot = s;
+    constructor(readonly spot: Spot) {
     }
 }
 
 export class SpotsMessage implements Message {
-    type = MessageType.Spots;
-    program: string;
-    spots: Spot[];
+    readonly type = MessageType.Spots;
 
-    constructor(p: string, s: Spot[]) {
-        this.program = p;
-        this.spots = s;
+    constructor(readonly program: string, readonly spots: Spot[]) {
     }
 }
 
 export class RetrieveAlertsMessage implements Message {
-    type = MessageType.RetrieveAlerts;
+    readonly type = MessageType.RetrieveAlerts;
 }
 
 export class AlertsMessage implements Message {
-    type = MessageType.Alerts;
+    readonly type = MessageType.Alerts;
 
     constructor(readonly alerts: Alert[]) {
     }

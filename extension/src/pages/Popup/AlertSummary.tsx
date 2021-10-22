@@ -16,6 +16,17 @@ const AlertSummary = (props: any) => {
     }
   }
 
+  const render_frequency = (alert: Alert) => {
+    const fieldName = "frequency";
+    const value = (alert[fieldName] / 1000000).toString() + " MHz"
+
+    if (alert.alert_fields.includes(fieldName)) {
+      return <div className="matched_field">{alert[fieldName]}</div>
+    } else {
+      return <div>{alert[fieldName]}</div>
+    }
+  }
+
   const alertClick = () => {
     highlightAlert(spot_alert);
   }
@@ -24,7 +35,8 @@ const AlertSummary = (props: any) => {
     <Card className="Alert" onClick={() => alertClick()}>
       {render_field(spot_alert, "callsign")}
       {render_field(spot_alert, "unit")}
-      {render_field(spot_alert, "frequency")}
+      {render_frequency(spot_alert)}
+      {render_field(spot_alert, "mode")}
       {render_field(spot_alert, "location")}
     </Card>
   );

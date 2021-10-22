@@ -70,9 +70,10 @@ let handleControlRequest = (request: ControlMessage) => {
     }
 
     for (const rigId of dataCache.rig_setup) {
-        const rig_information = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId)[0];
+        let rigRequest = 
+        const rig_information : RigInformation = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId)[0];
 
-        console.log("Control request: ");
+        console.log(`Control request: ${rig_information.name}`);
         request.rig = rig_information;
         console.log(request);
 
@@ -262,7 +263,7 @@ let handleSpotsData = (request: SpotsMessage, tab_id: number) => {
 
     evaluateAlertsForSpotsByTab(tab_id);
 
-    chrome.runtime.sendMessage(constructTabMessage);
+    chrome.runtime.sendMessage(constructTabMessage());
 }
 
 ensureDataCache().then(() => {
