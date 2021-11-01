@@ -70,7 +70,6 @@ let handleControlRequest = (request: ControlMessage) => {
     }
 
     for (const rigId of dataCache.rig_setup) {
-        let rigRequest = 
         const rig_information : RigInformation = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId)[0];
 
         console.log(`Control request: ${rig_information.name}`);
