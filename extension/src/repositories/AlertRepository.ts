@@ -1,4 +1,4 @@
-import AlertConfiguration from "../../AlertConfiguration";
+import AlertConfiguration from "../AlertConfiguration";
 
 export namespace AlertRepository {
     export type AddAlertConfiguration = (rig: AlertConfiguration) => void;

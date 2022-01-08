@@ -2,7 +2,7 @@ import React from 'react';
 import { RigInformation } from '../../RigConfiguration';
 import RigDisplay from './RigDisplay';
 import RigEntry from './RigEntry';
-import { RigRepository } from './RigRepository';
+import { RigRepository } from '../../repositories/RigRepository';
 
 const RigConfigurationDisplay = (props: any) => {
     const rig_information: RigInformation[] = props.rig_information || [];

@@ -13,8 +13,14 @@ class BandRange {
 }
 type BandRanges = { [bandName: string]: BandRange }
 const FREQUENCY_RANGES: BandRanges = {
+    "80m": new BandRange(3500000, 4000000),
     "40m": new BandRange(7000000, 7300000),
+    "30m": new BandRange(10100000, 10150000),
     "20m": new BandRange(14000000, 14350000),
+    "17m": new BandRange(18068000, 18168000),
+    "15m": new BandRange(21000000, 21450000),
+    "12m": new BandRange(24890000, 24990000),
+    "10m": new BandRange(28000000, 29700000),
 }
 
 type ModeSet = { [modeAlias: string]: string[] }

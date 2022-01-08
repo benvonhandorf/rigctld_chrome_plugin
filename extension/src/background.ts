@@ -1,67 +1,16 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot";
 import Alert from "./Alert";
-import { Message, ControlMessage, HighlightMessage, SpotsMessage, RetrieveAlertsMessage, AlertsMessage, MessageType, TabsMessage, HighlightTabMessage } from "./Messages";
-import { RigType, RigConfiguration, RigInformation } from "./RigConfiguration";
-import AlertConfiguration from "./AlertConfiguration";
+import { ControlMessage, HighlightMessage, SpotsMessage, AlertsMessage, MessageType, TabsMessage, HighlightTabMessage } from "./Messages";
+import { RigInformation } from "./RigConfiguration";
 import { evaluateSpotAlerts } from "./AlertEvaluator";
 import TabDescriptor from "./TabDescriptor";
+import { dataCache, ensureDataCache, optionRepository } from './repositories/DataCache';
 
 console.log("Background setup is beginning");
 
 //Transient and rebuilt from dataCache.spots_by_tab and alerts_by_program configuration, not stored
 var currentAlerts: Alert[] = [];
-
-const dataCache: any = {}
-
-const initDataCache = getAllStorageLocalData().then(items => {
-    Object.assign(dataCache, items)
-}).then(() => getAllStorageSyncData())
-    .then(items => {
-        Object.assign(dataCache, items);
-    });
-
-function getAllStorageLocalData() {
-    // Immediately return a promise and start asynchronous work
-    return new Promise((resolve, reject) => {
-        // Asynchronously fetch all data from storage.sync.
-        chrome.storage.local.get(null, (items) => {
-            // Pass any observed errors down the promise chain.
-            if (chrome.runtime.lastError) {
-                return reject(chrome.runtime.lastError);
-            }
-            // Pass the data retrieved from storage down the promise chain.
-            resolve(items);
-        });
-    });
-}
-
-function getAllStorageSyncData() {
-    // Immediately return a promise and start asynchronous work
-    return new Promise((resolve, reject) => {
-        // Asynchronously fetch all data from storage.sync.
-        chrome.storage.sync.get(null, (items) => {
-            // Pass any observed errors down the promise chain.
-            if (chrome.runtime.lastError) {
-                return reject(chrome.runtime.lastError);
-            }
-            // Pass the data retrieved from storage down the promise chain.
-            resolve(items);
-        });
-    });
-}
-
-async function ensureDataCache() {
-    try {
-        await initDataCache;
-
-        console.log("ensureDataCache")
-        console.log(dataCache);
-    } catch (e) {
-        console.log("Error loading dataCache");
-        console.log(e);
-    }
-}
 
 let handleControlRequest = (request: ControlMessage) => {
     if (dataCache.rig_information == null || dataCache.rig_setup == null) {
@@ -70,7 +19,7 @@ let handleControlRequest = (request: ControlMessage) => {
     }
 
     for (const rigId of dataCache.rig_setup) {
-        const rig_information : RigInformation = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId)[0];
+        const rig_information: RigInformation = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId)[0];
 
         console.log(`Control request: ${rig_information.name}`);
         request.rig = rig_information;
@@ -83,6 +32,7 @@ let handleControlRequest = (request: ControlMessage) => {
                     console.log(`Received from rig ${rig_information.name}:`);
                     console.log(response);
                 });
+
         } catch (e) {
             console.log(e);
         }
@@ -111,6 +61,8 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
     let vestigialAlertsFromTab = currentAlerts.filter((existing: Spot) => existing.tab_id == tab_id)
 
     const alertsForCurrentSpots: Alert[] = spotsForTab.map((spot: Spot) => evaluateSpotAlerts(spot, dataCache.alert_configuration)).filter((item: Alert | unknown) => item)
+
+    console.log(`Alerts for tab ${tab_id}: ${alertsForCurrentSpots}`)
 
     if (alertsForCurrentSpots.length) {
         let hasNewAlerts = false;
@@ -213,22 +165,22 @@ let evaluateAlertsForAllTabs = () => {
     }
 }
 
-let constructTabList = () : TabDescriptor[] => {
-    let results : TabDescriptor[] = [];
+let constructTabList = (): TabDescriptor[] => {
+    let results: TabDescriptor[] = [];
 
     if (dataCache.spots_by_tab == null) {
         return results;
     }
-    
+
     for (const tab_id in dataCache.spots_by_tab) {
         const tab_id_number: number = +tab_id;
 
         const program = dataCache.spots_by_tab[tab_id][0]?.program || "Unknown";
         const count = (dataCache.spots_by_tab[tab_id] || []).length;
-        const cw_count = (dataCache.spots_by_tab[tab_id]?.filter( (spot: Spot) => spot.mode === "CW") || []).length
-        const ssb_count = (dataCache.spots_by_tab[tab_id]?.filter( (spot: Spot) => spot.mode === "SSB") || []).length
+        const cw_count = (dataCache.spots_by_tab[tab_id]?.filter((spot: Spot) => spot.mode === "CW") || []).length
+        const ssb_count = (dataCache.spots_by_tab[tab_id]?.filter((spot: Spot) => spot.mode === "SSB") || []).length
 
-        const tab_descriptor = new TabDescriptor(tab_id_number, program, count, cw_count, ssb_count );
+        const tab_descriptor = new TabDescriptor(tab_id_number, program, count, cw_count, ssb_count);
 
         results.push(tab_descriptor);
     }
@@ -236,9 +188,9 @@ let constructTabList = () : TabDescriptor[] => {
     return results;
 }
 
-let constructTabMessage = () : TabsMessage => {
+let constructTabMessage = (): TabsMessage => {
     const tabs = constructTabList();
-    
+
     const message = new TabsMessage(tabs);
 
     return message;
@@ -338,23 +290,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
 
         return true;
-    } else if(request.type === MessageType.Highlight) {
+    } else if (request.type === MessageType.Highlight) {
         //The tab itself will do the highlighting and scrolling, but it's our job to activate the tab.
         const highlightMessage: HighlightMessage = request
 
-        chrome.tabs.update(request.spot.tab_id, { active: true} );
+        chrome.tabs.update(request.spot.tab_id, { active: true });
 
-        if(request.spot) {
+        if (request.spot) {
             //Resend the message to the specific tab
             chrome.tabs.sendMessage(request.spot.tab_id, request);
         }
 
         return false;
-    } else if(request.type === MessageType.HighlightTab) {
+    } else if (request.type === MessageType.HighlightTab) {
         //The tab itself will do the highlighting and scrolling, but it's our job to activate the tab.
         const highlightMessage: HighlightTabMessage = request
 
-        chrome.tabs.update(request.tab_id, { active: true} );
+        chrome.tabs.update(request.tab_id, { active: true });
 
         return false;
     } else {

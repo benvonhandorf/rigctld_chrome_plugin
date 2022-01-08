@@ -1,7 +1,7 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import { TextField, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Button, FormGroup, Checkbox, FormControlLabel, FormLabel } from '@mui/material';
-import { AlertRepository } from './AlertRepository';
+import { AlertRepository } from '../../repositories/AlertRepository';
 import AlertConfiguration from '../../AlertConfiguration';
 import generateRandomStringId from '../../random_id';
 
@@ -72,15 +72,21 @@ const AlertEntry = (props: any) => {
     const [unit, setUnit] = React.useState("");
 
     const handleUnit = (event: React.ChangeEvent<{ value: string }>) => {
-        setLocation(event.target.value);
+        setUnit(event.target.value);
     }
 
-    const addAlert = () => {
+    const addAlert = (event: React.MouseEvent<HTMLElement>) => {
+        if(!programs.length) {
+            event.preventDefault();
+            window.alert("You must select at least one program")
+            return;
+        }
+
         let new_alert: AlertConfiguration = {
             alert_id: generateRandomStringId(),
             callsign: callsign?.length ? callsign : undefined,
-            location: callsign?.length ? callsign : undefined,
-            unit: callsign?.length ? callsign : undefined,
+            location: location?.length ? location : undefined,
+            unit: unit?.length ? unit : undefined,
             band: bands.length ? bands : undefined,
             mode: modes.length ? modes : undefined,
             program: programs.length ? programs : undefined
@@ -120,7 +126,7 @@ const AlertEntry = (props: any) => {
             <FormGroup>
                 <FormLabel component="legend">Programs</FormLabel>
                 {
-                    ALL_PROGRAMS.map((program) => <FormControlLabel label={program} control={<Checkbox onChange={handleProgramChange} name="{program}" />} />)
+                    ALL_PROGRAMS.map((program) => <FormControlLabel label={program} control={<Checkbox onChange={handleProgramChange} name={program} />} />)
                 }
 
             </FormGroup>
@@ -128,7 +134,7 @@ const AlertEntry = (props: any) => {
             <FormGroup>
                 <FormLabel component="legend">Modes</FormLabel>
                 {
-                    ALL_MODES.map((mode) => <FormControlLabel label={mode} control={<Checkbox onChange={handleModeChange} name="{mode}" />} />)
+                    ALL_MODES.map((mode) => <FormControlLabel label={mode} control={<Checkbox onChange={handleModeChange} name={mode} />} />)
                 }
 
             </FormGroup>
@@ -136,7 +142,7 @@ const AlertEntry = (props: any) => {
             <FormGroup>
                 <FormLabel component="legend">Bands</FormLabel>
                 {
-                    ALL_BANDS.map((band) => <FormControlLabel label={band} control={<Checkbox onChange={handleBandChange} name="{band}" />} />)
+                    ALL_BANDS.map((band) => <FormControlLabel label={band} control={<Checkbox onChange={handleBandChange} name={band} />} />)
                 }
 
             </FormGroup>

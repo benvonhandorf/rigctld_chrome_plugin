@@ -1,4 +1,4 @@
-import { RigInformation } from "../../RigConfiguration";
+import { RigInformation } from "../RigConfiguration";
 
 export namespace RigRepository {
     export type ChangeRigActivation = (rig: RigInformation, active: boolean) => void;

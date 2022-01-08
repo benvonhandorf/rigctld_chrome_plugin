@@ -1,7 +1,7 @@
 import React from 'react';
 import Box from '@mui/material/Box';
 import { TextField, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Button } from '@mui/material';
-import { RigRepository } from './RigRepository';
+import { RigRepository } from '../../repositories/RigRepository';
 import { RigConfiguration, RigInformation, RigType } from '../../RigConfiguration';
 import generateRandomStringId from '../../random_id';
 

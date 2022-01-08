@@ -3,7 +3,7 @@ import React from 'react';
 import AlertConfiguration from '../../AlertConfiguration';
 import AlertConfigurationItemDisplay from './AlertConfigurationItemDisplay';
 import AlertEntry from './AlertEntry';
-import { AlertRepository } from './AlertRepository';
+import { AlertRepository } from '../../repositories/AlertRepository';
 
 const AlertConfigurationDisplay = (props: any) => {
     const alertConfiguration: AlertConfiguration[] = props.alertConfiguration

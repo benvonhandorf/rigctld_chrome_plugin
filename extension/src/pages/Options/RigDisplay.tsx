@@ -1,7 +1,7 @@
 import { Card, FormControlLabel, Switch } from '@mui/material';
 import React from 'react';
 import { RigInformation } from '../../RigConfiguration';
-import { RigRepository } from './RigRepository';
+import { RigRepository } from '../../repositories/RigRepository';
 
 const RigDisplay = (props: any) => {
     const rig: RigInformation = props.rig

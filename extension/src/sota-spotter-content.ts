@@ -1,6 +1,7 @@
 import { ControlMessage, SpotsMessage } from "./Messages";
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot";
+import { copySpotToClipboard } from './SpotClipboardHelper';
 
 let event_handler_debounce: any = null;
 
@@ -57,6 +58,8 @@ let frequency_click = (evt: Event) => {
 
         console.log(control_message);
         chrome.runtime.sendMessage(control_message);
+
+        copySpotToClipboard(spot);
     }
 }
 

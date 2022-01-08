@@ -279,3 +279,30 @@ describe("evaluateMode", () => {
         expect(evaluateMode(mode, modes)).toEqual(true)
     })
 })
+
+describe("locationOnlyAlert", () => {
+    const spot = {
+        "frequency": 18130000,
+        "mode": "SSB",
+        "callsign": "AB7NK",
+        "unit": "K-4514",
+        "location": "US-NM",
+        "program": "pota",
+        "tab_id": 1069
+    };
+
+    const alertConfiguration = [{
+        "alert_id": "3acc9cd4-fa1a-4d14-af49-f97c26844938",
+        "program": ["pota"],
+        "location": "US-NM",
+    }];
+
+    test("US-NM alert matches spot", () => {
+        const result: Alert | undefined = evaluateSpotAlerts(spot, alertConfiguration);
+
+        console.log(result);
+
+        expect(result).not.toEqual(undefined);
+        expect(result?.alert_id).toEqual("3acc9cd4-fa1a-4d14-af49-f97c26844938");
+    });
+})

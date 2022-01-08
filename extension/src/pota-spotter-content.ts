@@ -1,6 +1,7 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot"
 import { Message, ControlMessage, SpotsMessage, HighlightMessage, MessageType } from "./Messages";
+import { copySpotToClipboard } from './SpotClipboardHelper';
 
 let event_handler_debounce: any = null;
 
@@ -78,13 +79,13 @@ let frequency_click = (evt: Event) => {
     let spot_data = parse_card_data(card);
 
     if (spot_data) {
-        let request = new ControlMessage(spot_data)
+        let request = new ControlMessage(spot_data);
 
         console.log(request);
         chrome.runtime.sendMessage(request);
+
+        copySpotToClipboard(spot_data);
     }
-
-
 }
 
 let perform_update = () => {
@@ -197,11 +198,11 @@ setup();
 chrome.runtime.onMessage.addListener(
     function (request, sender, sendResponse) {
         console.log(request);
-        
-        if (request.type === MessageType.Highlight) {
-            const highlightMessage : HighlightMessage = request;
 
-            if(highlightMessage.spot.program === "pota") {
+        if (request.type === MessageType.Highlight) {
+            const highlightMessage: HighlightMessage = request;
+
+            if (highlightMessage.spot.program === "pota") {
                 highlight_spot(highlightMessage.spot);
             }
         }
