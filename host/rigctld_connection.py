@@ -172,7 +172,7 @@ class RigctldConnection:
 
     mode_lookup = {
         "FT8": {"mode": lambda frequency: "PKTUSB", "passband": 3000},
-        "CW": {"mode": lambda frequency: "CW", "passband": 500},
+        "CW": {"mode": lambda frequency: "CW", "passband": 200},
         "SSB": {"mode": ssb_mode_from_frequency, "passband": 2600},
     }
 

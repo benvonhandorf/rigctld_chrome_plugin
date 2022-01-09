@@ -12,8 +12,8 @@ import './index.css';
 import { AlertsMessage, HighlightMessage, HighlightTabMessage, MessageType, RetrieveAlertsMessage, RetrieveTabsMessage, TabsMessage } from '../../Messages';
 import Alert from '../../Alert';
 import TabsDisplay from './TabsDisplay';
-
-// if (module.hot) module.hot.accept();
+import { addStorageChangedListener, dataCache, ensureDataCache, rigRepository } from '../../repositories/DataCache';
+import RigEnableDisplay from './RigConfigurationDisplay';
 
 const highlightAlert = (alert: Alert) => {
     console.log(alert);
@@ -36,7 +36,31 @@ const bindTabs = (message: TabsMessage) => {
     }
 }
 
-const retrieveData = () => {
+const bindRigs = ( ) => {
+    render(<RigEnableDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rigRepository} />, window.document.querySelector('#rigs-container'));
+}
+
+addStorageChangedListener((changedKeys:string[]) => {
+    console.log(`Storage changed: ${changedKeys}`)
+
+    let rebindRigs = false;
+
+    if(!changedKeys.length) {
+        rebindRigs = true;
+    }
+
+    for(const k of changedKeys) {
+        if (k === "rig_information" || k === "rig_setup") {
+            rebindRigs = true;
+        }
+    }
+    
+    if (rebindRigs) {
+        bindRigs();
+    }
+});
+
+async function init() {
     let request = new RetrieveAlertsMessage();
 
     chrome.runtime.sendMessage(request, (response) => {
@@ -50,10 +74,9 @@ const retrieveData = () => {
         console.log(requestTabs);
         bindTabs(response);
     });
-
 };
 
-retrieveData();
+init();
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === MessageType.Alerts) {

@@ -13,8 +13,6 @@ const AlertConfigurationDisplay = (props: any) => {
         <div className="alert_configuration_section">
             {
                 alertConfiguration.map( (alertConfigurationItem) => {
-                    console.log(alertConfigurationItem);
-
                     return (<AlertConfigurationItemDisplay alert_configuration_item={alertConfigurationItem} alert_repository={alertRepository} />)
                 })
             }

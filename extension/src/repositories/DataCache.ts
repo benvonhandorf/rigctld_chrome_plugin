@@ -38,6 +38,31 @@ export const optionRepository: OptionRepository.OptionRepository = {
     }
 }
 
+var storageChangedListener: (changedKeys: string[]) => void = () => {} ;
+
+export function addStorageChangedListener(newListener: (changedKeys: string[]) => void) : void {
+    storageChangedListener = newListener;
+
+    ensureDataCache().then( () => {
+        storageChangedListener([]);
+    })
+
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+    var changedKeys : string[] = []
+
+    for (const k in changes) {
+        changedKeys.push(k)
+
+        Object.assign(dataCache[k], changes[k].newValue)
+    }
+
+    if(changedKeys.length) {
+        storageChangedListener(changedKeys);
+    }
+});
+
 export const rigRepository: RigRepository.RigRepository = {
     changeRigActivation: function (rig: RigInformation, active: boolean): void {
         console.log(`Changing ${rig} to ${active}`)
