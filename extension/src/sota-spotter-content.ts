@@ -4,6 +4,8 @@ import Spot from "./Spot";
 import { copySpotToClipboard } from './SpotClipboardHelper';
 
 let event_handler_debounce: any = null;
+let setup_handler_token: any = null;
+let setup_attempts_remaining = 3;
 
 let sota_callsign_regex = /\s*(?<frequency>\d+(?:.?\d+)?)\s*(?:(?<mode>\w+))?/;
 let sota_frequency_regex = /\s*(?<frequency>\d+(?:.?\d+)?)\s*(?:(?<mode>\w+))?/;
@@ -115,10 +117,19 @@ let enqueue_update = (evt: Event) => {
 }
 
 let setup = () => {
+    window.clearTimeout(setup_handler_token)
+    
     let main_div = document.getElementById("ngb-tab-0-panel")
 
     if (!main_div) {
         console.log("Unable to setup monitor due to missing main content section")
+
+        setup_attempts_remaining = setup_attempts_remaining - 1
+
+        if(setup_attempts_remaining > 0) {
+            setup_handler_token = window.setTimeout(setup, 500);
+        }
+
         return;
     }
 
@@ -127,6 +138,6 @@ let setup = () => {
     console.log("Dom update configured");
 };
 
-setup();
+setup_handler_token = window.setTimeout(setup, 500);
 
 console.log("Page setup completed");
