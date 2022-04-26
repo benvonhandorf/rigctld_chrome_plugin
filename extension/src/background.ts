@@ -12,6 +12,57 @@ console.log("Background setup is beginning");
 //Transient and rebuilt from dataCache.spots_by_tab and alerts_by_program configuration, not stored
 var currentAlerts: Alert[] = [];
 
+//Transient status informationzs
+var alertIndicatorLit = false
+var breakInSet = false;
+
+let updateIcon = () => {
+    if (alertIndicatorLit) {
+        if (breakInSet) {
+            chrome.action.setIcon({ path: "images/signal_alert_bk.png" });
+        } else {
+            chrome.action.setIcon({ path: "images/signal_alert.png" });
+        }
+    } else {
+        if (breakInSet) {
+            chrome.action.setIcon({ path: "images/signal_empty_bk.png" });
+        } else {
+            chrome.action.setIcon({ path: "images/signal_empty.png" });
+        }
+    }
+}
+
+let setAlertsIndicator = () => {
+    alertIndicatorLit = true;
+
+    updateIcon();
+
+    if (true) {
+        // var alertAudio = new Audio(chrome.runtime.getURL("audio/alert.mp3"));
+        // alertAudio.play();
+    }
+}
+
+let clearAlertsIndicator = () => {
+    alertIndicatorLit = false;
+    
+    updateIcon();
+}
+
+let parseNativeResponse = (rig_response: any) => {
+    console.log(rig_response)
+    
+    if (!rig_response) {
+        console.log(`No response from native client`)
+        return
+    }
+
+    if (rig_response.hasOwnProperty('break_in')) {
+        breakInSet = rig_response['break_in']
+        updateIcon()
+    }
+}
+
 let handleControlRequest = (request: ControlMessage) => {
     if (dataCache.rig_information == null || dataCache.rig_setup == null) {
         chrome.runtime.openOptionsPage();
@@ -29,8 +80,7 @@ let handleControlRequest = (request: ControlMessage) => {
             chrome.runtime.sendNativeMessage('com.skyironstudio.rigctld_native_messaging_host',
                 request,
                 function (response) {
-                    console.log(`Received from rig ${rig_information.name}:`);
-                    console.log(response);
+                    parseNativeResponse(response)
                 });
 
         } catch (e) {
@@ -39,34 +89,20 @@ let handleControlRequest = (request: ControlMessage) => {
     }
 }
 
-let notifyAlerts = (request: NotifyAlertsMessage) => {    
+let notifyAlerts = (request: NotifyAlertsMessage) => {
     try {
         console.log(`Sending Notify Alerts: ${request}`)
 
         chrome.runtime.sendNativeMessage('com.skyironstudio.rigctld_native_messaging_host',
             request,
             function (response) {
-                console.log(`Received from host for NotifyAlertsMessage:`);
-                console.log(response);
+                parseNativeResponse(response)
             });
 
     } catch (e) {
         console.log('Error in notifyAlerts:')
         console.log(e);
     }
-}
-
-let setAlertsIndicator = () => {
-    chrome.action.setIcon({ path: "images/signal_alert.png" });
-
-    if (true) {
-        // var alertAudio = new Audio(chrome.runtime.getURL("audio/alert.mp3"));
-        // alertAudio.play();
-    }
-}
-
-let clearAlertsIndicator = () => {
-    chrome.action.setIcon({ path: "images/signal_empty.png" });
 }
 
 let evaluateAlertsForSpotsByTab = (tab_id: number) => {
@@ -83,7 +119,7 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
     console.log(`Alerts for tab ${tab_id}: `)
     console.log(alertsForCurrentSpots);
 
-    let newAlerts : Alert[] = []
+    let newAlerts: Alert[] = []
 
     if (alertsForCurrentSpots.length) {
         for (const alert of alertsForCurrentSpots) {
@@ -114,7 +150,7 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
 
             console.log("Current alerts:");
             console.log(currentAlerts);
-    
+
             console.log("New alerts:");
             console.log(newAlerts);
 
@@ -142,7 +178,7 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
     }
 
     chrome.runtime.sendMessage(new AlertsMessage(currentAlerts), (response) => {
-        if(response) {
+        if (response) {
             console.log(`AlertsMessage response:`)
             console.log(response)
         }
@@ -190,10 +226,10 @@ let evaluateAlertsForAllTabs = () => {
                         .then(() => {
                             console.log("Spot data serialized")
                             console.log(dataCache.spots_by_tab)
-                        }).catch( (e) => {
+                        }).catch((e) => {
                             console.log(`Error in evaluateAlertsForAllTabs: ${e}`)
                         });
-                }).catch( (e) => {
+                }).catch((e) => {
                     console.log(`Error in evaluateAlertsForAllTabs outer: ${e}`)
                 });
         }
@@ -253,7 +289,7 @@ let handleSpotsData = (request: SpotsMessage, tab_id: number) => {
     evaluateAlertsForSpotsByTab(tab_id);
 
     chrome.runtime.sendMessage(constructTabMessage(), (response) => {
-        if(response) {
+        if (response) {
             console.log(`Tab message response:`)
             console.log(response)
         }
@@ -304,7 +340,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             evaluateAlertsForAllTabs();
         }).then(() => {
             handleControlRequest(request);
-        }).catch( (e) => {
+        }).catch((e) => {
             console.log(`Error processing Control Message: ${e}`)
         });
 
@@ -314,7 +350,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             evaluateAlertsForAllTabs();
         }).then(() => {
             handleSpotsData(request, sender?.tab?.id || -1);
-        }).catch( (e) => {
+        }).catch((e) => {
             console.log(`Error processing Spots Message: ${e}`)
         });
 
@@ -326,7 +362,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             chrome.action.setIcon({ path: "images/signal_empty.png" })
 
             sendResponse(new AlertsMessage(currentAlerts));
-        }).catch( (e) => {
+        }).catch((e) => {
             console.log(`Error processing RetrieveAlerts Message: ${e}`)
         });
 
@@ -338,7 +374,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const message = constructTabMessage();
 
             sendResponse(message);
-        }).catch( (e) => {
+        }).catch((e) => {
             console.log(`Error processing RetrieveTabs Message: ${e}`)
         });
         return true;
