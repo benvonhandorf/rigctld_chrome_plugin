@@ -5,6 +5,7 @@ import struct
 import json
 from rigctld_connection import RigctldConnection
 from gqrx_connection import GqrxConnection
+from pushover_api import PushoverApi
 
 ## Largely gleaned/copied/inspired from: https://github.com/SphinxKnight/webextensions-examples/blob/master/native-messaging/app/ping_pong.py
 
@@ -42,8 +43,64 @@ def get_rig_connection(rig_info):
 
     return rig_connection
 
+def send_alerts_notification(notify_alerts_message, log_file):
+    alerts = message.get("alerts") or []
+
+    field_separator = ","
+    alert_separator = " and "
+
+    message_body = ""
+
+    for alert in alerts:
+        alert_text = ""
+
+        alert_fields = alert.get("alert_fields") or []
+
+        for alert_field in alert_fields:
+            value = alert.get(alert_field) or ""
+
+            if value:
+                alert_text = alert_text + value + field_separator
+        
+        if alert_text:
+            message_body = message_body + alert_text[:-len(field_separator)] + alert_separator
+        
+    if message_body:
+        message_body = message_body[:-len(alert_separator)]
+
+        log_file.write("Notification body:")
+        log_file.write(message_body)
+        log_file.write("\n")
+
+        try:
+            push_configuration = {}
+
+            with open("push_notification_settings.json") as settings_file:
+                push_configuration = json.load(settings_file) or {}
+
+            log_file.write(str(push_configuration))
+            log_file.write("\n")
+
+            push_providers = push_configuration.get("providers") or []
+
+            for provider in push_providers:
+                api = None
+
+                if provider["api"] == "pushover":
+                    api = PushoverApi(provider)
+
+                if api:
+                    log_file.write(f"Found push configuration for {provider['api']}")
+                    log_file.write("\n")
+
+                    api.send_notification(message_body)
+        except Exception as e:
+            log_file.write(f"Exception: {e}\n")
+
 def process_message(message):
+
     with open("info.log", "a") as log:
+
         log.write(json.dumps(message, sort_keys=True, indent=4))
         log.write('\n')
 
@@ -85,29 +142,24 @@ def process_message(message):
             rig_connection.disconnect()
 
             send_message(result)
+        elif message["type"] == "alerts":
+            send_alerts_notification(message, log)
+
+            result = {"result":"success"}
+
+            log.write(f'Alert result: {result}')
+
+            send_message(result)
         else:
             log.write("Unknown message type\n")
 
 
 while True:
-    message = get_message()
-#     message = json.loads("""{
-#     "rig": {
-#         "config": {
-#             "host": "localhost",
-#             "port": 7356
-#         },
-#         "name": "Gqrx",
-#         "type": "gqrx"
-#     },
-#     "spot": {
-#         "callsign": "KE0DSD",
-#         "frequency": 21300000,
-#         "location": "US-CO",
-#         "mode": "SSB",
-#         "unit": "K-0227"
-#     },
-#     "type": "control"
-# }""")
+    try:
+        message = get_message()
 
-    process_message(message)
+        process_message(message)
+    except Exception as e:
+        with open("info.log", "a") as log:
+            log.write(str(e))
+            log.write('\n')

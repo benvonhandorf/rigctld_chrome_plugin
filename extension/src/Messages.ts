@@ -12,7 +12,8 @@ export enum MessageType {
     RetrieveAlerts = "retrieve_alerts",
     Alerts = "alerts",    
     RetrieveTabs = "retrieve_tabs",
-    Tabs = "tabs"
+    Tabs = "tabs",
+    NotifyAlerts = "notify_alerts",
 };
 
 export interface Message {
@@ -70,5 +71,12 @@ export class HighlightTabMessage implements Message {
     type = MessageType.HighlightTab;
 
     constructor(readonly tab_id: number) {
+    }
+}
+
+export class NotifyAlertsMessage implements Message {
+    readonly type = MessageType.NotifyAlerts;
+
+    constructor(readonly alerts: Alert[]) {
     }
 }

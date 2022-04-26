@@ -15,6 +15,7 @@ class RigctldConnection:
         self.frequency_parser = re.compile("Frequency: (?P<VALUE>\d+)\n")
         self.level_parser = re.compile("(?P<VALUE>[+-]?\d+\.?\d*)\n")
         self.power_parser = re.compile("Power mW: (?P<VALUE>[+-]?\d+\.?\d*)\n")
+        self.break_in_parser = re.compile("BI(?P<VALUE>\d);")
 
         self.sock = None
 
@@ -68,6 +69,39 @@ class RigctldConnection:
             total_sent = total_sent + sent
 
         response = self.receive_response()
+
+        return response
+
+    def receive_response_raw(self, expected_bytes):
+        chunks = []
+        bytes_recd = 0
+
+        while bytes_recd < expected_bytes:
+            chunk = self.sock.recv(min(expected_bytes - bytes_recd, expected_bytes))
+
+            if chunk == b'':
+                raise RuntimeError("socket connection broken")
+            
+            chunks.append(chunk)
+            bytes_recd = bytes_recd + len(chunk)
+
+        return b''.join(chunks).decode('utf-8')
+
+    def send_command_raw(self, command, expected_bytes):
+        if not command.endswith('\n'):
+            command = command + '\n'
+
+        total_sent = 0
+
+        command = command.encode('utf-8')
+
+        while total_sent < len(command):
+            sent = self.sock.send(command[total_sent:])
+            if sent == 0:
+                raise RuntimeError("socket connection broken")
+            total_sent = total_sent + sent
+
+        response = self.receive_response_raw(expected_bytes)
 
         return response
 
@@ -142,6 +176,40 @@ class RigctldConnection:
 
         return result
 
+    def get_break_in(self):
+        command = f"W BI; 4"
+
+        #This command is outside the normal Hamlib implementation so we have to fake the
+        #response code setup
+        result = {"response_code": 0}
+
+        response = self.send_command_raw(command, 4)
+
+        break_in_match = self.break_in_parser.match(response)
+
+        if break_in_match:
+            value = break_in_match.groups("VALUE")[0]
+
+            result["break_in"] = value == "1"
+        else:
+            result["response_code"] = -200
+
+        return result
+
+    def set_break_in(self, break_in: bool):
+        val = 0
+
+        if break_in:
+            val = 1
+
+        command = f"W BI{val}; 0"
+
+        response = self.send_command_raw(command, 0)
+
+        result = {"response_code": 0, "break_in": break_in}
+
+        return result
+
     def get_power(self, frequency, mode):
         command = f"+\\get_level RFPOWER"
 
@@ -161,6 +229,7 @@ class RigctldConnection:
         result = self.get_frequency()
         result.update(self.get_mode())
         result.update(self.get_power(result["frequency"], result["mode"]))
+        result.update(self.get_break_in())
 
         return result
 

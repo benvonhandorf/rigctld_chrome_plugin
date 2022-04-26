@@ -1,7 +1,7 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot";
 import Alert from "./Alert";
-import { ControlMessage, HighlightMessage, SpotsMessage, AlertsMessage, MessageType, TabsMessage, HighlightTabMessage } from "./Messages";
+import { ControlMessage, HighlightMessage, SpotsMessage, AlertsMessage, MessageType, TabsMessage, HighlightTabMessage, NotifyAlertsMessage } from "./Messages";
 import { RigInformation } from "./RigConfiguration";
 import { evaluateSpotAlerts } from "./AlertEvaluator";
 import TabDescriptor from "./TabDescriptor";
@@ -39,6 +39,23 @@ let handleControlRequest = (request: ControlMessage) => {
     }
 }
 
+let notifyAlerts = (request: NotifyAlertsMessage) => {    
+    try {
+        console.log(`Sending Notify Alerts: ${request}`)
+
+        chrome.runtime.sendNativeMessage('com.skyironstudio.rigctld_native_messaging_host',
+            request,
+            function (response) {
+                console.log(`Received from host for NotifyAlertsMessage:`);
+                console.log(response);
+            });
+
+    } catch (e) {
+        console.log('Error in notifyAlerts:')
+        console.log(e);
+    }
+}
+
 let setAlertsIndicator = () => {
     chrome.action.setIcon({ path: "images/signal_alert.png" });
 
@@ -57,25 +74,26 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
 
     console.log(`Spot data for tab ${tab_id}: `);
     console.log(spotsForTab);
+    console.log(currentAlerts);
 
     let vestigialAlertsFromTab = currentAlerts.filter((existing: Spot) => existing.tab_id == tab_id)
 
     const alertsForCurrentSpots: Alert[] = spotsForTab.map((spot: Spot) => evaluateSpotAlerts(spot, dataCache.alert_configuration)).filter((item: Alert | unknown) => item)
 
-    console.log(`Alerts for tab ${tab_id}: ${alertsForCurrentSpots}`)
+    console.log(`Alerts for tab ${tab_id}: `)
+    console.log(alertsForCurrentSpots);
+
+    let newAlerts : Alert[] = []
 
     if (alertsForCurrentSpots.length) {
-        let hasNewAlerts = false;
-
         for (const alert of alertsForCurrentSpots) {
-            console.log(alert)
-            console.log(currentAlerts)
             let existingAlerts = currentAlerts.filter((existing) => object_matcher.spotsSameIncludingFrequency(alert, existing))
 
-            if (!existingAlerts.length) {
-                currentAlerts.push(alert)
+            console.log(`Existing: ${existingAlerts.length} for alert ${alert.alert_id}`)
 
-                hasNewAlerts = true
+            if (!existingAlerts.length) {
+                console.log(`Adding ${alert.alert_id} to new alerts`)
+                newAlerts.push(alert)
             } else {
                 for (const existingAlert of existingAlerts) {
                     //Alerts that still match active data in the tab and the alert criteria
@@ -89,11 +107,22 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
             }
         }
 
-        console.log("Current alerts:");
-        console.log(currentAlerts);
-
-        if (hasNewAlerts) {
+        if (newAlerts.length) {
             setAlertsIndicator();
+
+            notifyAlerts(new NotifyAlertsMessage(newAlerts));
+
+            console.log("Current alerts:");
+            console.log(currentAlerts);
+    
+            console.log("New alerts:");
+            console.log(newAlerts);
+
+            console.log("Vestigial alerts:");
+            console.log(vestigialAlertsFromTab);
+
+            //Add new alerts to current alerts
+            currentAlerts.push(...newAlerts)
         }
     }
 
@@ -112,7 +141,12 @@ let evaluateAlertsForSpotsByTab = (tab_id: number) => {
         clearAlertsIndicator();
     }
 
-    chrome.runtime.sendMessage(new AlertsMessage(currentAlerts));
+    chrome.runtime.sendMessage(new AlertsMessage(currentAlerts), (response) => {
+        if(response) {
+            console.log(`AlertsMessage response:`)
+            console.log(response)
+        }
+    });
 }
 
 let evaluateAlertsForAllTabs = () => {
@@ -156,7 +190,11 @@ let evaluateAlertsForAllTabs = () => {
                         .then(() => {
                             console.log("Spot data serialized")
                             console.log(dataCache.spots_by_tab)
+                        }).catch( (e) => {
+                            console.log(`Error in evaluateAlertsForAllTabs: ${e}`)
                         });
+                }).catch( (e) => {
+                    console.log(`Error in evaluateAlertsForAllTabs outer: ${e}`)
                 });
         }
     } catch (e) {
@@ -214,11 +252,18 @@ let handleSpotsData = (request: SpotsMessage, tab_id: number) => {
 
     evaluateAlertsForSpotsByTab(tab_id);
 
-    chrome.runtime.sendMessage(constructTabMessage());
+    chrome.runtime.sendMessage(constructTabMessage(), (response) => {
+        if(response) {
+            console.log(`Tab message response:`)
+            console.log(response)
+        }
+    });
 }
 
 ensureDataCache().then(() => {
     evaluateAlertsForAllTabs();
+}).catch((e) => {
+    console.log(`Error in initial evaluateDataCache: ${e}`)
 });
 
 chrome.storage.onChanged.addListener((changes, area) => {
@@ -259,6 +304,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             evaluateAlertsForAllTabs();
         }).then(() => {
             handleControlRequest(request);
+        }).catch( (e) => {
+            console.log(`Error processing Control Message: ${e}`)
         });
 
         return false;
@@ -267,6 +314,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             evaluateAlertsForAllTabs();
         }).then(() => {
             handleSpotsData(request, sender?.tab?.id || -1);
+        }).catch( (e) => {
+            console.log(`Error processing Spots Message: ${e}`)
         });
 
         return false;
@@ -277,6 +326,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             chrome.action.setIcon({ path: "images/signal_empty.png" })
 
             sendResponse(new AlertsMessage(currentAlerts));
+        }).catch( (e) => {
+            console.log(`Error processing RetrieveAlerts Message: ${e}`)
         });
 
         return true;
@@ -287,8 +338,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const message = constructTabMessage();
 
             sendResponse(message);
+        }).catch( (e) => {
+            console.log(`Error processing RetrieveTabs Message: ${e}`)
         });
-
         return true;
     } else if (request.type === MessageType.Highlight) {
         //The tab itself will do the highlighting and scrolling, but it's our job to activate the tab.

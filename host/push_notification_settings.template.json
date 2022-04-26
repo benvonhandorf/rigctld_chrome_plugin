@@ -1,0 +1,9 @@
+{
+    "providers":[
+        {
+            "api":"pushover",
+            "token": "TOKEN",
+            "user_key": "USER_KEY"
+        }
+    ]
+}

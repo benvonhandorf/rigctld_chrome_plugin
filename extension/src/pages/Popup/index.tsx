@@ -83,6 +83,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         //New alert data is avalable
         bindAlerts(request);
     } else if(request.type === MessageType.Tabs) {
+        //New tab data is available
         bindTabs(request);
     }
 
