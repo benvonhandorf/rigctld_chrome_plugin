@@ -10,6 +10,10 @@ export const dataCache: any = {}
 
 export const initDataCache = getStorageItems().then((storageItems) => {
     Object.assign(dataCache, storageItems);
+
+    if(dataCache.rig_setup == null) {
+        dataCache.rig_setup = [];
+    }
 });
 
 export async function ensureDataCache() {
@@ -65,11 +69,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 export const rigRepository: RigRepository.RigRepository = {
     changeRigActivation: function (rig: RigInformation, active: boolean): void {
-        console.log(`Changing ${rig} to ${active}`)
+        console.log(`Changing ${rig.name} to ${active}`)
 
         if (active) {
             if (dataCache?.rig_setup?.includes(rig.id)) {
-                console.log(`Rig ${rig} already present in rig_setup`);
+                console.log(`Rig ${rig.name} already present in rig_setup`);
                 return;
             } else {
                 dataCache?.rig_setup?.push(rig.id);
@@ -79,7 +83,7 @@ export const rigRepository: RigRepository.RigRepository = {
                 let index_index = dataCache?.rig_setup?.indexOf(rig.id);
                 dataCache?.rig_setup?.splice(index_index, 1);
             } else {
-                console.log(`Rig ${rig} already not present in rig_setup`);
+                console.log(`Rig ${rig.name} already not present in rig_setup`);
                 return;
             }
         }
@@ -89,7 +93,7 @@ export const rigRepository: RigRepository.RigRepository = {
         let rigIndex = dataCache.rig_information.findIndex((rig_candidate: RigInformation) => rig_candidate.id === rig.id);
 
         if (rigIndex !== -1) {
-            console.log(`Rig ${rig} already present in ${dataCache.rig_information}`)
+            console.log(`Rig ${rig.name} already present in ${dataCache.rig_information}`)
             return;
         }
 
