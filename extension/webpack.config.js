@@ -76,7 +76,7 @@ const config = {
     new CopyPlugin({
       patterns: [
         { from: 'manifest.json', to: '.' },
-        { from: 'public', to: '.' }
+        { from: 'public/', to: '.' }
       ]
     }),
     new HtmlWebpackPlugin({
