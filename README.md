@@ -6,16 +6,30 @@ Plugin to allow quickly setting frequencies/modes from chrome for POTA/SOTA/RBN
 
 Is currently a mess.
 
+### System Requirements
+
+`sudo apt install libcurl4-openssl-dev libssl-dev`
+
+Extension development:
+
+`sudo apt install npm`
+`npm install` in `extension` directory
+`make`
+
+### Extension Installation
+
 - In chrome, go to Tools -> Extensions.
 - Enable developer mode.
 - Select "Load Unpacked Extension"
-- Point it at the `/extension` directory.
+- Point it at the `/extension/dist` directory.
 - Copy the extension ID from this page.
 - Edit `./host/com.skyironstudio.rigctld_native_messaging_host.json`
 - Replace ID in the `allowed_extensions` chrome-extension URI with the ID you copied from your local installation.
 - Save the file and close it.
 - In `./host`, execute `install.sh`.  This might work properly on macs, but possibly not.
 - Restart Chrome.
+
+
 
 ## Configuration
 
