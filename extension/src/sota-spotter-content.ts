@@ -12,16 +12,21 @@ let sota_frequency_regex = /\s*(?<frequency>\d+(?:.?\d+)?)\s*(?:(?<mode>\w+))?/;
 
 let parse_entry_data = (card: HTMLElement): Spot | null => {
     try {
-        let frequency_text = (card.children[2] as HTMLElement).innerText;
+        if (card.children == null || card.children.length != 8) {
+            //Unusual card, e.g. TEST or QRT.  Skip it
+            return null;
+        }
+
+        let frequency_text = ((card.children[2] as HTMLElement).children[0] as HTMLElement).innerText;
 
         let match = frequency_text.match(sota_frequency_regex);
 
         let frequency = parseFloat(match?.groups?.frequency || "0");
 
-        let mode = match?.groups?.mode?.toUpperCase() || "SSB";
+        let mode = ((card.children[3] as HTMLElement).childNodes[0] as HTMLElement).innerText;
 
-        let callsign = (card.querySelector(".col-7 div span strong") as HTMLElement).innerText
-        let unit_text = (card.querySelector(".col-7 a strong") as HTMLElement).innerText
+        let callsign = (card.children[1] as HTMLElement).innerText
+        let unit_text = (card.children[4] as HTMLElement).innerText
         let spot_location = unit_text.slice(0, unit_text.indexOf('/'))
 
         //SOTAWatch does all requencies in MHz.  As is tradition.
@@ -47,7 +52,7 @@ let parse_entry_data = (card: HTMLElement): Spot | null => {
 }
 
 let frequency_click = (evt: Event) => {
-    let card = (evt.target as HTMLElement).closest(".row") as HTMLElement;
+    let card = (evt.target as HTMLElement).closest("tr") as HTMLElement;
 
     if (card == null) {
         return;
@@ -66,8 +71,7 @@ let frequency_click = (evt: Event) => {
 }
 
 let perform_update = () => {
-    let cards = document.querySelectorAll("#ngb-tab-0-panel .row") as NodeListOf<HTMLElement>;
-
+    let cards = document.querySelectorAll("app-spots table tbody tr") as NodeListOf<HTMLElement>;
     let spots = [];
 
     console.log("Updating dom:" + cards.length);
@@ -108,18 +112,18 @@ let perform_update = () => {
     event_handler_debounce = null;
 }
 
-let enqueue_update = (evt: Event) => {
+let mutation_observer = new MutationObserver((mutations) => {
     if (event_handler_debounce) {
         window.clearTimeout(event_handler_debounce);
     }
 
     event_handler_debounce = window.setTimeout(perform_update, 100);
-}
+});
 
 let setup = () => {
     window.clearTimeout(setup_handler_token)
-    
-    let main_div = document.getElementById("ngb-tab-0-panel")
+
+    let main_div = document.querySelector("#ngb-nav-0-panel > app-spots")
 
     if (!main_div) {
         console.log("Unable to setup monitor due to missing main content section")
@@ -133,7 +137,7 @@ let setup = () => {
         return;
     }
 
-    main_div.addEventListener("DOMSubtreeModified", enqueue_update);
+    mutation_observer.observe(main_div, { childList: true, subtree: true });
 
     console.log("Dom update configured");
 };

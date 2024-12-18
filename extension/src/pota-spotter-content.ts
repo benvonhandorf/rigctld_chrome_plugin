@@ -167,18 +167,13 @@ let highlight_spot = (spot_to_highlight: Spot | null) => {
     }
 }
 
-let enqueue_update = (evt: Event) => {
-    if ((evt.target as HTMLElement)?.parentElement?.parentElement?.className === "refresh-timer") {
-        //Don't update every time the timer updates
-        return;
-    }
-
+let mutation_observer = new MutationObserver((mutations) => {
     if (event_handler_debounce) {
         window.clearTimeout(event_handler_debounce);
     }
 
     event_handler_debounce = window.setTimeout(perform_update, 100);
-}
+});
 
 let setup = () => {
     let main_div = document.getElementsByClassName("v-main")[0]
@@ -188,9 +183,9 @@ let setup = () => {
         return;
     }
 
-    main_div.addEventListener("DOMSubtreeModified", enqueue_update);
+    mutation_observer.observe(main_div, { childList: true, subtree: true });
 
-    console.log("Dom update configured");
+    console.log("Mutation update configured");
 };
 
 setup();
