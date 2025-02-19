@@ -1,10 +1,11 @@
 
 export enum LocalStorageItems {
     RigSetup = "rig_setup",
+    RigInformation = "rig_information",
 }
 
 export enum SyncStorageItems {
-    RigInformation = "rig_information",
+    AlertConfiguration = "alert_configuration",
 }
 
 export function getStorageItems() : Promise<any> {

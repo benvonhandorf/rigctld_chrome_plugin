@@ -56,6 +56,9 @@ export function addStorageChangedListener(newListener: (changedKeys: string[]) =
 chrome.storage.onChanged.addListener((changes, area) => {
     var changedKeys : string[] = []
 
+    console.log("Storage changed:");
+    console.log(changes);
+
     for (const k in changes) {
         changedKeys.push(k)
 
@@ -113,7 +116,7 @@ export const rigRepository: RigRepository.RigRepository = {
 
             dataCache.rig_setup = dataCache.rig_setup.filter((id: string) => id !== rigId);
 
-            chrome.storage.sync.set({ rig_information: dataCache.rig_information, rig_setup: dataCache.rig_setup });
+            chrome.storage.local.set({ rig_information: dataCache.rig_information, rig_setup: dataCache.rig_setup });
         }
 
     }

@@ -37,6 +37,7 @@ const bindTabs = (message: TabsMessage) => {
 }
 
 const bindRigs = ( ) => {
+    debugger;
     render(<RigEnableDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rigRepository} />, window.document.querySelector('#rigs-container'));
 }
 

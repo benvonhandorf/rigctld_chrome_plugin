@@ -70,7 +70,13 @@ let handleControlRequest = (request: ControlMessage) => {
     }
 
     for (const rigId of dataCache.rig_setup) {
-        const rig_information: RigInformation = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId)[0];
+        const rigs = dataCache.rig_information.filter((rig: RigInformation) => rig.id === rigId);
+        
+        if(rigs == null || rigs.length == 0) {
+            continue;
+        }
+
+        const rig_information: RigInformation = rigs[0];
 
         console.log(`Control request: ${rig_information.name}`);
         request.rig = rig_information;
@@ -377,6 +383,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }).catch((e) => {
             console.log(`Error processing RetrieveTabs Message: ${e}`)
         });
+
         return true;
     } else if (request.type === MessageType.Highlight) {
         //The tab itself will do the highlighting and scrolling, but it's our job to activate the tab.
@@ -404,3 +411,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 }
 );
+
+console.log('Completed configuring extension');
