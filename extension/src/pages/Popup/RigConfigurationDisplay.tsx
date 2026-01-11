@@ -12,7 +12,7 @@ const RigEnableDisplay = (props: any) => {
         <div className="rig_list">
             {
                 rig_information.map((rig:RigInformation) =>
-                    <RigDisplaySimple rig={rig} enabled={rig_setup.includes(rig.id)} rig_repository={rig_repository} />
+                    <RigDisplaySimple key={rig.id} rig={rig} enabled={rig_setup.includes(rig.id)} rig_repository={rig_repository} />
                 )
             }
         </div>

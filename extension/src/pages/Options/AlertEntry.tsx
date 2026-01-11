@@ -126,7 +126,7 @@ const AlertEntry = (props: any) => {
             <FormGroup>
                 <FormLabel component="legend">Programs</FormLabel>
                 {
-                    ALL_PROGRAMS.map((program) => <FormControlLabel label={program} control={<Checkbox onChange={handleProgramChange} name={program} />} />)
+                    ALL_PROGRAMS.map((program) => <FormControlLabel key={program} label={program} control={<Checkbox onChange={handleProgramChange} name={program} />} />)
                 }
 
             </FormGroup>
@@ -134,7 +134,7 @@ const AlertEntry = (props: any) => {
             <FormGroup>
                 <FormLabel component="legend">Modes</FormLabel>
                 {
-                    ALL_MODES.map((mode) => <FormControlLabel label={mode} control={<Checkbox onChange={handleModeChange} name={mode} />} />)
+                    ALL_MODES.map((mode) => <FormControlLabel key={mode} label={mode} control={<Checkbox onChange={handleModeChange} name={mode} />} />)
                 }
 
             </FormGroup>
@@ -142,7 +142,7 @@ const AlertEntry = (props: any) => {
             <FormGroup>
                 <FormLabel component="legend">Bands</FormLabel>
                 {
-                    ALL_BANDS.map((band) => <FormControlLabel label={band} control={<Checkbox onChange={handleBandChange} name={band} />} />)
+                    ALL_BANDS.map((band) => <FormControlLabel key={band} label={band} control={<Checkbox onChange={handleBandChange} name={band} />} />)
                 }
 
             </FormGroup>

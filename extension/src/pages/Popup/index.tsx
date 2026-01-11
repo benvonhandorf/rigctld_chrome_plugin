@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot, Root } from 'react-dom/client';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -15,6 +15,10 @@ import TabsDisplay from './TabsDisplay';
 import { addStorageChangedListener, dataCache, ensureDataCache, rigRepository } from '../../repositories/DataCache';
 import RigEnableDisplay from './RigConfigurationDisplay';
 
+let alertsRoot: Root | null = null;
+let tabsRoot: Root | null = null;
+let rigsRoot: Root | null = null;
+
 const highlightAlert = (alert: Alert) => {
     console.log(alert);
     chrome.runtime.sendMessage(new HighlightMessage(alert));
@@ -26,19 +30,37 @@ const highlightTab = (tab_id: number) => {
 
 const bindAlerts = (message: AlertsMessage) => {
     if(message.alerts != null) {
-        render(<Alerts alerts={message.alerts} highlightAlert={highlightAlert} />, window.document.querySelector('#alerts-container'));
+        const container = window.document.querySelector('#alerts-container');
+        if (container) {
+            if (!alertsRoot) {
+                alertsRoot = createRoot(container);
+            }
+            alertsRoot.render(<Alerts alerts={message.alerts} highlightAlert={highlightAlert} />);
+        }
     }
 }
 
 const bindTabs = (message: TabsMessage) => {
     if(message.tabs != null) {
-        render(<TabsDisplay tabs={message.tabs} highlightTab={highlightTab} />, window.document.querySelector('#tabs-container'));
+        const container = window.document.querySelector('#tabs-container');
+        if (container) {
+            if (!tabsRoot) {
+                tabsRoot = createRoot(container);
+            }
+            tabsRoot.render(<TabsDisplay tabs={message.tabs} highlightTab={highlightTab} />);
+        }
     }
 }
 
 const bindRigs = ( ) => {
     debugger;
-    render(<RigEnableDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rigRepository} />, window.document.querySelector('#rigs-container'));
+    const container = window.document.querySelector('#rigs-container');
+    if (container) {
+        if (!rigsRoot) {
+            rigsRoot = createRoot(container);
+        }
+        rigsRoot.render(<RigEnableDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rigRepository} />);
+    }
 }
 
 addStorageChangedListener((changedKeys:string[]) => {

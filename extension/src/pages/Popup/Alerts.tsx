@@ -11,7 +11,7 @@ const Alerts = (props: any) : JSX.Element => {
     return (
       <div className="Alerts">
         {
-          alerts.map((spot_alert) => <AlertSummary spot_alert={spot_alert} highlightAlert={highlightAlert}></AlertSummary>)
+          alerts.map((spot_alert) => <AlertSummary key={spot_alert.alert_id} spot_alert={spot_alert} highlightAlert={highlightAlert}></AlertSummary>)
         }
       </div>
     );

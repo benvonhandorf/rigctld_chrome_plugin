@@ -13,7 +13,7 @@ const TabsDisplay = (props: any) => {
           <th>CW</th>
           <th>SSB</th>
           {
-              tabs.map( (tab) => <TabDisplay tab={tab} highlightTab={highlightTab}></TabDisplay>)
+              tabs.map( (tab) => <TabDisplay key={tab.tab_id} tab={tab} highlightTab={highlightTab}></TabDisplay>)
           }
       </table>
   );

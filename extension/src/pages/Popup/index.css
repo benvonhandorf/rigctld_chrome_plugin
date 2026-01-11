@@ -1,3 +1,121 @@
-.matched_field { 
-    font-weight: bold; 
+/* Matched alert fields - make them stand out */
+.matched_field {
+    font-weight: 600;
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Set popup width and basic layout */
+body {
+    width: 400px;
+    min-height: 300px;
+    margin: 0;
+    font-family: Roboto, sans-serif;
+}
+
+#app-container {
+    padding: 16px;
+}
+
+/* Section headers */
+#tabs-container::before {
+    content: "Active Tabs";
+    display: block;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: #1976d2;
+}
+
+#alerts-container::before {
+    content: "Current Alerts";
+    display: block;
+    font-size: 18px;
+    font-weight: 500;
+    margin: 20px 0 12px 0;
+    color: #d32f2f;
+}
+
+#rigs-container::before {
+    content: "Radio Control";
+    display: block;
+    font-size: 18px;
+    font-weight: 500;
+    margin: 20px 0 12px 0;
+    color: #388e3c;
+}
+
+/* Style the tabs table */
+#tabs-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+}
+
+#tabs-container th {
+    text-align: left;
+    padding: 8px;
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #ddd;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+#tabs-container td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+#tabs-container tr.Tab {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#tabs-container tr.Tab:hover {
+    background-color: #e3f2fd;
+}
+
+/* Alert cards styling */
+.Alert {
+    cursor: pointer;
+    margin-bottom: 8px !important;
+    padding: 12px !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.Alert:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    background-color: #fff3e0 !important;
+}
+
+.Alert > div {
+    padding: 4px 0;
+}
+
+/* Rig cards in popup */
+#rigs-container > div {
+    margin-bottom: 8px;
+}
+
+/* Empty states */
+#alerts-container:empty::after {
+    content: "No active alerts";
+    display: block;
+    color: #999;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
+}
+
+#tabs-container:empty::after {
+    content: "No active tabs with spots";
+    display: block;
+    color: #999;
+    font-style: italic;
+    padding: 20px;
+    text-align: center;
 }

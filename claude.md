@@ -275,14 +275,94 @@ Build now works with standard React 17.0.2.
 - @types/chrome: 0.0.159 → 0.0.277 (updated type definitions)
 
 **Kept at current versions to avoid breaking changes:**
-- React & React DOM: Staying at 17.0.2 (React 18+ requires code changes)
 - MUI (Material-UI): Staying at 5.x (MUI v6+ has breaking changes)
-- Jest & testing libraries: Staying at 27.x (Jest 28+ requires migration)
-- TypeScript: Staying at 4.9.5 (TS 5 incompatible with Jest 27)
+- TypeScript: Staying at 4.9.5 (stable, compatible with Jest 29)
 - react-router-dom: Staying at 5.x (v6+ has different API)
 - uuid: Staying at 8.x (newer versions have ESM-only exports)
 
 All tests pass and build works successfully with updated dependencies.
+
+### React 18 Upgrade (2026-01-11)
+**Upgraded React from 17.0.2 → 18.3.1** with full migration to modern patterns.
+
+**Updated packages:**
+- **react**: 17.0.2 → **18.3.1**
+- **react-dom**: 17.0.2 → **18.3.1**
+- **@types/react**: 17.0.90 → **18.3.18**
+- **@types/react-dom**: 17.0.26 → **18.3.5**
+- **jest**: 27.5.1 → **29.7.0**
+- **babel-jest**: 27.5.1 → **29.7.0**
+- **ts-jest**: 27.1.5 → **29.2.5**
+- **@types/jest**: 27.5.2 → **29.5.14**
+- Added **jest-environment-jsdom** 29.7.0 (required for Jest 29)
+
+**Code changes made:**
+1. **Migrated to createRoot API** (React 18 requirement)
+   - [Popup/index.tsx](extension/src/pages/Popup/index.tsx): Replaced `ReactDOM.render()` with `createRoot()` pattern
+   - [Options/index.tsx](extension/src/pages/Options/index.tsx): Replaced `ReactDOM.render()` with `createRoot()` pattern
+   - Created persistent root instances to handle dynamic re-renders
+
+2. **Added missing key props** (React 18 stricter warnings)
+   - [Popup/Alerts.tsx](extension/src/pages/Popup/Alerts.tsx): Added `key={alert.alert_id}`
+   - [Popup/TabsDisplay.tsx](extension/src/pages/Popup/TabsDisplay.tsx): Added `key={tab.tab_id}`
+   - [Popup/RigConfigurationDisplay.tsx](extension/src/pages/Popup/RigConfigurationDisplay.tsx): Added `key={rig.id}`
+   - [Options/RigConfigurationDisplay.tsx](extension/src/pages/Options/RigConfigurationDisplay.tsx): Added `key={rig.id}`
+   - [Options/AlertConfigurationDisplay.tsx](extension/src/pages/Options/AlertConfigurationDisplay.tsx): Added `key={alertConfigurationItem.alert_id}`
+   - [Options/AlertEntry.tsx](extension/src/pages/Options/AlertEntry.tsx): Added keys for program/mode/band lists
+   - [Options/AlertConfigurationItemDisplay.tsx](extension/src/pages/Options/AlertConfigurationItemDisplay.tsx): Fixed malformed JSX and added `key={item}`
+
+**Benefits of React 18:**
+- Automatic batching for better performance
+- Concurrent rendering capabilities
+- Improved TypeScript support
+- Modern foundation for future updates
+
+**Verification:**
+- ✅ All 31 tests passing
+- ✅ Build successful (popup: 526KB, options: 769KB)
+- ✅ No breaking changes to functionality
+- ✅ Ready for Chrome extension deployment
+
+### UI/UX Styling Improvements (2026-01-11)
+**Enhanced visual design** with professional CSS styling for better user experience.
+
+**Popup Page Improvements** ([Popup/index.css](extension/src/pages/Popup/index.css)):
+- Set proper popup dimensions (400px wide, min 300px height)
+- Added section headers with color coding:
+  - Blue for "Active Tabs"
+  - Red for "Current Alerts"
+  - Green for "Radio Control"
+- Styled data table with proper borders, padding, and hover states
+- Enhanced alert cards with hover effects (lift animation + shadow)
+- Improved matched field highlighting (red badge style)
+- Added empty state messages for better UX
+- Consistent spacing and padding throughout
+
+**Options Page Improvements** ([Options/index.css](extension/src/pages/Options/index.css)):
+- Clean white cards on light gray background
+- Section headers with colored bottom borders
+- Maximum width constraint (900px) for readability
+- Proper form field spacing and layout
+- Visual separator between existing items and new entry forms
+- Hover effects on cards and delete buttons
+- Better typography hierarchy (h1, h2 styling)
+- Improved checkbox group layout
+
+**Visual Enhancements:**
+- Smooth transitions for all interactive elements
+- Consistent Material Design color palette
+- Professional spacing using 8px grid system
+- Clear hover states indicating clickability
+- Better visual hierarchy with typography
+- Responsive feedback for all user actions
+
+**Benefits:**
+- ✨ Professional appearance matching modern UI standards
+- 👆 Clear affordances showing what's clickable
+- 📊 Better information hierarchy and scannability
+- 🎨 Consistent visual language throughout
+- ⚡ Smooth interactions with CSS transitions
+- 💬 Helpful empty states when no data present
 
 ## Message Protocol
 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot, Root } from 'react-dom/client';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -13,12 +13,27 @@ import RigConfigurationDisplay from './RigConfigurationDisplay';
 import AlertConfigurationDisplay from './AlertConfigurationDisplay';
 import { dataCache, alertRepository, rigRepository, ensureDataCache, addStorageChangedListener } from '../../repositories/DataCache'
 
+let rigsRoot: Root | null = null;
+let alertsRoot: Root | null = null;
+
 let bindRigs = () => {
-    render(<RigConfigurationDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rigRepository} />, window.document.querySelector('#rig-container'));
+    const container = window.document.querySelector('#rig-container');
+    if (container) {
+        if (!rigsRoot) {
+            rigsRoot = createRoot(container);
+        }
+        rigsRoot.render(<RigConfigurationDisplay rig_information={dataCache.rig_information} rig_setup={dataCache.rig_setup} rig_repository={rigRepository} />);
+    }
 }
 
 let bindAlerts = () => {
-    render(<AlertConfigurationDisplay alertConfiguration={dataCache.alert_configuration} alertRepository={alertRepository} />, window.document.querySelector('#alert-container'));
+    const container = window.document.querySelector('#alert-container');
+    if (container) {
+        if (!alertsRoot) {
+            alertsRoot = createRoot(container);
+        }
+        alertsRoot.render(<AlertConfigurationDisplay alertConfiguration={dataCache.alert_configuration} alertRepository={alertRepository} />);
+    }
 }
 
 addStorageChangedListener((changedKeys:string[]) => {
