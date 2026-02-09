@@ -130,3 +130,75 @@ h2 {
 .MuiFormGroup-root .MuiFormControlLabel-root {
     margin: 4px 0 !important;
 }
+
+/* Native Host Status section */
+#status-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.native-host-status .status-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.native-host-status .status-text {
+    font-size: 16px;
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.native-host-status .status-connected {
+    color: #2e7d32;
+}
+
+.native-host-status .status-disconnected {
+    color: #d32f2f;
+}
+
+.native-host-status .version {
+    font-weight: 400;
+    color: #666;
+}
+
+.native-host-status .help-content {
+    font-size: 14px;
+}
+
+.native-host-status .help-content p {
+    margin: 8px 0;
+}
+
+.native-host-status .help-content ol {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.native-host-status .help-content li {
+    margin: 8px 0;
+}
+
+.native-host-status .help-content code {
+    background-color: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+.native-host-status .extension-id {
+    display: inline-block;
+    margin-top: 4px;
+    background-color: #e3f2fd;
+    border: 1px solid #90caf9;
+    user-select: all;
+}
+
+.native-host-status .error-detail {
+    color: #d32f2f;
+    font-style: italic;
+}

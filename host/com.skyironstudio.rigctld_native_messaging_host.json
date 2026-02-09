@@ -2,8 +2,9 @@
     "name": "com.skyironstudio.rigctld_native_messaging_host",
     "description": "rigctld Messaging Interface",
     "path": "HOST_PATH",
+    
     "type": "stdio",
     "allowed_origins": [
-      "chrome-extension://hmeoopfhkifenknaecjkoleeblomcbal/"
+      "chrome-extension://kcnnnkoopelnmfmibdkdpaioggjlgpgm/"
     ]
   }

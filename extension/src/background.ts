@@ -1,7 +1,7 @@
 import * as object_matcher from "./object_matcher";
 import Spot from "./Spot";
 import Alert from "./Alert";
-import { ControlMessage, HighlightMessage, SpotsMessage, AlertsMessage, MessageType, TabsMessage, HighlightTabMessage, NotifyAlertsMessage } from "./Messages";
+import { ControlMessage, HighlightMessage, SpotsMessage, AlertsMessage, MessageType, TabsMessage, HighlightTabMessage, NotifyAlertsMessage, NativeHostStatusMessage, NativeHostStatusInfo } from "./Messages";
 import { RigInformation } from "./RigConfiguration";
 import { evaluateSpotAlerts } from "./AlertEvaluator";
 import TabDescriptor from "./TabDescriptor";
@@ -108,6 +108,46 @@ let notifyAlerts = (request: NotifyAlertsMessage) => {
     } catch (e) {
         console.log('Error in notifyAlerts:')
         console.log(e);
+    }
+}
+
+let checkNativeHostStatus = (sendResponse: (response: NativeHostStatusMessage) => void) => {
+    try {
+        chrome.runtime.sendNativeMessage(
+            'com.skyironstudio.rigctld_native_messaging_host',
+            { type: 'ping' },
+            function (response) {
+                const lastError = chrome.runtime.lastError;
+                if (lastError) {
+                    console.log('Native host error:', lastError.message);
+                    const status: NativeHostStatusInfo = {
+                        connected: false,
+                        error: lastError.message
+                    };
+                    sendResponse(new NativeHostStatusMessage(status));
+                } else if (response) {
+                    console.log('Native host response:', response);
+                    const status: NativeHostStatusInfo = {
+                        connected: true,
+                        version: response.version
+                    };
+                    sendResponse(new NativeHostStatusMessage(status));
+                } else {
+                    const status: NativeHostStatusInfo = {
+                        connected: false,
+                        error: 'No response from native host'
+                    };
+                    sendResponse(new NativeHostStatusMessage(status));
+                }
+            }
+        );
+    } catch (e) {
+        console.log('Error checking native host:', e);
+        const status: NativeHostStatusInfo = {
+            connected: false,
+            error: e instanceof Error ? e.message : 'Unknown error'
+        };
+        sendResponse(new NativeHostStatusMessage(status));
     }
 }
 
@@ -404,6 +444,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.tabs.update(request.tab_id, { active: true });
 
         return false;
+    } else if (request.type === MessageType.CheckNativeHost) {
+        checkNativeHostStatus(sendResponse);
+        return true;
     } else {
         console.log("Unknown message type");
         console.log(request);

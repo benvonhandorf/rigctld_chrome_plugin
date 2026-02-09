@@ -10,10 +10,12 @@ export enum MessageType {
     HighlightTab = "highlight_tabzs",
     Spots = "spots",
     RetrieveAlerts = "retrieve_alerts",
-    Alerts = "alerts",    
+    Alerts = "alerts",
     RetrieveTabs = "retrieve_tabs",
     Tabs = "tabs",
     NotifyAlerts = "notify_alerts",
+    CheckNativeHost = "check_native_host",
+    NativeHostStatus = "native_host_status",
 };
 
 export interface Message {
@@ -78,5 +80,22 @@ export class NotifyAlertsMessage implements Message {
     readonly type = MessageType.NotifyAlerts;
 
     constructor(readonly alerts: Alert[]) {
+    }
+}
+
+export class CheckNativeHostMessage implements Message {
+    readonly type = MessageType.CheckNativeHost;
+}
+
+export interface NativeHostStatusInfo {
+    connected: boolean;
+    error?: string;
+    version?: string;
+}
+
+export class NativeHostStatusMessage implements Message {
+    readonly type = MessageType.NativeHostStatus;
+
+    constructor(readonly status: NativeHostStatusInfo) {
     }
 }

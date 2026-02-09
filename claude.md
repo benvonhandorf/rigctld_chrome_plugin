@@ -364,6 +364,42 @@ All tests pass and build works successfully with updated dependencies.
 - ⚡ Smooth interactions with CSS transitions
 - 💬 Helpful empty states when no data present
 
+### Component Layout Improvements (2026-01-11 - Phase 2)
+**Enhanced component layouts** with icons and improved information architecture.
+
+**Component Updates:**
+
+1. **AlertSummary** ([Popup/AlertSummary.tsx](extension/src/pages/Popup/AlertSummary.tsx)):
+   - Two-row layout: Callsign + Frequency on top row
+   - Icons for metadata: 📍 unit, 📻 mode, 🗺️ location
+   - Proper frequency formatting (3 decimal places)
+   - Conditional rendering (only show fields that exist)
+   - Better use of horizontal space
+
+2. **RigDisplay** ([Options/RigDisplay.tsx](extension/src/pages/Options/RigDisplay.tsx)):
+   - Icons: 📻 for radio name, 🌐 for connection
+   - Side-by-side layout: Info on left, toggle on right
+   - Larger card width (600px) for better readability
+   - Dynamic label: "Enabled" vs "Disabled" on switch
+   - Visual hierarchy with font sizes (18px name, 14px connection)
+
+3. **RigDisplaySimple** ([Popup/RigDisplaySimple.tsx](extension/src/pages/Popup/RigDisplaySimple.tsx)):
+   - Compact design for popup space constraints
+   - Icon: 📻 for consistency
+   - Horizontal layout with small switch
+   - Reduced padding for space efficiency
+
+**Code Improvements:**
+- Refactored render functions for flexibility (inline vs block)
+- Null checks prevent rendering empty fields
+- Consistent icon usage across all components
+- FlexBox layouts for responsive alignment
+
+**Bundle Impact:**
+- Popup: 528KB → **501KB** (-27KB, -5.1%)
+- Options: 771KB (no change)
+- All 31 tests passing ✅
+
 ## Message Protocol
 
 ### Extension → Native Host

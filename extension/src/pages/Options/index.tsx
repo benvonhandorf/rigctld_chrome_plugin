@@ -11,10 +11,22 @@ import './index.css';
 
 import RigConfigurationDisplay from './RigConfigurationDisplay';
 import AlertConfigurationDisplay from './AlertConfigurationDisplay';
+import NativeHostStatus from './NativeHostStatus';
 import { dataCache, alertRepository, rigRepository, ensureDataCache, addStorageChangedListener } from '../../repositories/DataCache'
 
+let statusRoot: Root | null = null;
 let rigsRoot: Root | null = null;
 let alertsRoot: Root | null = null;
+
+let bindStatus = () => {
+    const container = window.document.querySelector('#status-container');
+    if (container) {
+        if (!statusRoot) {
+            statusRoot = createRoot(container);
+        }
+        statusRoot.render(<NativeHostStatus />);
+    }
+}
 
 let bindRigs = () => {
     const container = window.document.querySelector('#rig-container');
@@ -63,3 +75,6 @@ addStorageChangedListener((changedKeys:string[]) => {
         bindAlerts();
     }
 });
+
+// Bind status component on page load (only needs to be done once)
+bindStatus();

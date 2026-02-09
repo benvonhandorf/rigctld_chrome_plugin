@@ -1,13 +1,13 @@
 {
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlzMGR+wa90WY7vkgTjXn6OJ3c0zJz3F3qOiUrVNizYDOQ3I9X5XGmaPYtRGOv/yQ0VgVlJfhF9qMMOnKbG81xjoVLDv1Ks2xNi4ZtWWTxNaIolae3agN9nwNrAngvheoS9JFGCO8Bxh9Vgmurapg87neWSDM/ZRNSVar0Ygz4olTYQk9O1iNN30n7LmIviOtxRdxUC09bbLH0Ypon7N3+lMFHI9nrAWIsYWNoiuidTlTR8TqCXsAL995CxocPz0lkwhlryMVBBNMQiSt5hVPuaGtq5lfjVBb8IWxOKlfxRJRF++YHfTS6QYF60TZT3qwffF6vln3ZfogjYg7+FITzwIDAQAB",
   "name": "Radio Control",
-  "description": "Sets radio frequnecies by clicking on spots",
-  "version": "1.0",
+  "description": "Control your ham radio from POTA and SOTA spotter websites. Click a spot to tune your rig.",
+  "version": "1.0.0",
   "manifest_version": 3,
   "permissions": [
     "nativeMessaging",
     "clipboardWrite",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "https://pota.app/#/"
@@ -44,13 +44,17 @@
   ],
   "action": {
     "default_icon": {
-      "24": "images/signal_empty.png"
+      "16": "images/icon16.png",
+      "24": "images/icon24.png",
+      "32": "images/icon32.png"
     },
     "default_title": "View Alerts",
     "default_popup": "popup.html"
   },
   "icons": {
-    "24": "images/signal_empty.png",
-    "128": "images/signal_empty.png"
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
   }
 }

@@ -7,24 +7,31 @@ const AlertSummary = (props: any) => {
   let spot_alert: Alert = props.spot_alert;
   let alert_highlighter 
 
-  const render_field = (alert: Alert, field_name: string) => {
+  const render_field = (alert: Alert, field_name: string, inline: boolean = false) => {
+    const value = alert[field_name];
+    const isMatched = alert.alert_fields.includes(field_name);
 
-    if (alert.alert_fields.includes(field_name)) {
-      return <div className="matched_field">{alert[field_name]}</div>
-    } else {
-      return <div>{alert[field_name]}</div>
-    }
+    if (!value) return null;
+
+    const content = isMatched ? (
+      <span className="matched_field">{value}</span>
+    ) : (
+      <span>{value}</span>
+    );
+
+    return inline ? content : <div>{content}</div>;
   }
 
   const render_frequency = (alert: Alert) => {
     const fieldName = "frequency";
-    const value = (alert[fieldName] / 1000000).toString() + " MHz"
+    const value = (alert[fieldName] / 1000000).toFixed(3) + " MHz";
+    const isMatched = alert.alert_fields.includes(fieldName);
 
-    if (alert.alert_fields.includes(fieldName)) {
-      return <div className="matched_field">{alert[fieldName]}</div>
-    } else {
-      return <div>{alert[fieldName]}</div>
-    }
+    return isMatched ? (
+      <span className="matched_field">{value}</span>
+    ) : (
+      <span>{value}</span>
+    );
   }
 
   const alertClick = () => {
@@ -33,11 +40,15 @@ const AlertSummary = (props: any) => {
 
   return (
     <Card className="Alert" onClick={() => alertClick()}>
-      {render_field(spot_alert, "callsign")}
-      {render_field(spot_alert, "unit")}
-      {render_frequency(spot_alert)}
-      {render_field(spot_alert, "mode")}
-      {render_field(spot_alert, "location")}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
+        <strong style={{ fontSize: '16px' }}>{render_field(spot_alert, "callsign", true)}</strong>
+        <span style={{ fontSize: '14px', color: '#1976d2', fontWeight: 500 }}>{render_frequency(spot_alert)}</span>
+      </div>
+      <div style={{ display: 'flex', gap: '12px', fontSize: '14px', color: '#666', flexWrap: 'wrap' }}>
+        {spot_alert.unit && <span>📍 {render_field(spot_alert, "unit", true)}</span>}
+        {spot_alert.mode && <span>📻 {render_field(spot_alert, "mode", true)}</span>}
+        {spot_alert.location && <span>🗺️ {render_field(spot_alert, "location", true)}</span>}
+      </div>
     </Card>
   );
 };

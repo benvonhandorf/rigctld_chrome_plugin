@@ -4,30 +4,56 @@ Plugin to allow quickly setting frequencies/modes from chrome for POTA/SOTA/RBN
 
 ## Installation
 
-Is currently a mess.
+### Option 1: Install from Chrome Web Store (Recommended)
 
-### System Requirements
+1. Install the extension from the [Chrome Web Store](https://chrome.google.com/webstore/detail/YOUR_EXTENSION_ID)
+2. Install the native messaging host:
+   ```bash
+   curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/rigctld_chrome_plugin/main/host/install-remote.sh | bash
+   ```
+3. Restart Chrome
 
-`sudo apt install libcurl4-openssl-dev libssl-dev`
+### Option 2: Build from Source (Developers)
 
-Extension development:
+#### System Requirements
 
-`sudo apt install npm`
-`npm install` in `extension` directory
-`make`
+```bash
+sudo apt install libcurl4-openssl-dev libssl-dev npm librsvg2-bin
+```
 
-### Extension Installation
+#### Build the Extension
 
-- In chrome, go to Tools -> Extensions.
-- Enable developer mode.
-- Select "Load Unpacked Extension"
-- Point it at the `/extension/dist` directory.
-- Copy the extension ID from this page.
-- Edit `./host/com.skyironstudio.rigctld_native_messaging_host.json`
-- Replace ID in the `allowed_extensions` chrome-extension URI with the ID you copied from your local installation.
-- Save the file and close it.
-- In `./host`, execute `install.sh`.  This might work properly on macs, but possibly not.
-- Restart Chrome.
+```bash
+cd extension
+npm install
+make package
+```
+
+#### Load the Extension
+
+1. In Chrome, go to `chrome://extensions/`
+2. Enable "Developer mode" (top right)
+3. Click "Load unpacked"
+4. Select the `extension/dist` directory
+5. Note your extension ID from this page
+
+#### Configure Native Host
+
+Since you're building from source, you'll have a different extension ID than the published version. Update the native host manifest with your local ID:
+
+1. Edit `host/com.skyironstudio.rigctld_native_messaging_host.json`
+2. Replace the extension ID in `allowed_origins` with your local ID:
+   ```json
+   "allowed_origins": [
+     "chrome-extension://YOUR_LOCAL_EXTENSION_ID/"
+   ]
+   ```
+3. Install the native host:
+   ```bash
+   cd host
+   ./install.sh
+   ```
+4. Restart Chrome
 
 
 

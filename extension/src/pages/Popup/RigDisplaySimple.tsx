@@ -14,8 +14,17 @@ const RigDisplaySimple = (props: any) => {
 
     return (
         <div>
-            <Card variant="outlined" sx={{ maxWidth: 345 }}>
-                <FormControlLabel control={<Switch checked={rig_enabled}/>} onChange={change_enabled} label={rig.name} />
+            <Card variant="outlined" sx={{ padding: '8px 12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 500 }}>
+                        📻 {rig.name}
+                    </span>
+                    <Switch
+                        checked={rig_enabled}
+                        onChange={change_enabled}
+                        size="small"
+                    />
+                </div>
             </Card>
         </div>
     )

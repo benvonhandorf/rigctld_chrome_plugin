@@ -150,6 +150,10 @@ def process_message(message):
             log.write(f'Alert result: {result}')
 
             send_message(result)
+        elif message["type"] == "ping":
+            log.write("Ping received\n")
+            result = {"result": "pong", "version": "1.0.0"}
+            send_message(result)
         else:
             log.write("Unknown message type\n")
 
