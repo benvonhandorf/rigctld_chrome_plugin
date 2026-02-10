@@ -52,7 +52,8 @@ curl -sSL "$REPO_URL/rigctld_connection.py" -o rigctld_connection.py
 curl -sSL "$REPO_URL/gqrx_connection.py" -o gqrx_connection.py
 curl -sSL "$REPO_URL/pushover_api.py" -o pushover_api.py
 curl -sSL "$REPO_URL/requirements.txt" -o requirements.txt
-curl -sSL "$REPO_URL/$HOST_NAME.json" -o "$HOST_NAME.json"
+curl -sSL "$REPO_URL/${HOST_NAME}_template.json" -o "$HOST_NAME.json"
+curl -sSL "$REPO_URL/push_notification_settings_template.json" -o "push_notification_settings.json"
 
 # Make scripts executable
 chmod +x native_host.py native_host.sh

@@ -14,6 +14,14 @@ export const initDataCache = getStorageItems().then((storageItems) => {
     if(dataCache.rig_setup == null) {
         dataCache.rig_setup = [];
     }
+
+    if(dataCache.rig_information == null) {
+        dataCache.rig_information = [];
+    }
+
+    if(dataCache.alert_configuration == null) {
+        dataCache.alert_configuration = [];
+    }
 });
 
 export async function ensureDataCache() {
@@ -62,7 +70,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     for (const k in changes) {
         changedKeys.push(k)
 
-        Object.assign(dataCache[k], changes[k].newValue)
+        dataCache[k] = changes[k].newValue
     }
 
     if(changedKeys.length) {

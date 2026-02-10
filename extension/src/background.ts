@@ -57,6 +57,10 @@ let parseNativeResponse = (rig_response: any) => {
         return
     }
 
+    if (rig_response.error) {
+        console.log(`Native host error: ${rig_response.error}`)
+    }
+
     if (rig_response.hasOwnProperty('break_in')) {
         breakInSet = rig_response['break_in']
         updateIcon()

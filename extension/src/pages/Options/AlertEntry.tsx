@@ -1,6 +1,5 @@
 import React from 'react';
-import Box from '@mui/material/Box';
-import { TextField, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Button, FormGroup, Checkbox, FormControlLabel, FormLabel } from '@mui/material';
+import { TextField, Button, FormGroup, Checkbox, FormControlLabel, FormLabel } from '@mui/material';
 import { AlertRepository } from '../../repositories/AlertRepository';
 import AlertConfiguration from '../../AlertConfiguration';
 import generateRandomStringId from '../../random_id';
@@ -96,55 +95,52 @@ const AlertEntry = (props: any) => {
     }
     return (
         <div>
-            <h1>Alert</h1>
-            <p>Only specify criteria you wish to restrict by.  Leaving a field blank will match anything.</p>
+            <h1>Add Alert</h1>
+            <p style={{ color: '#666', marginBottom: '16px' }}>Only specify criteria you wish to restrict by. Leaving a field blank will match anything.</p>
 
-            <TextField
-                required
-                id="alert-location"
-                label="Location"
-                helperText="Location text for area.  e.g. US-GA for POTA or W2 for SOTA."
-                onChange={handleLocation}
-            />
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                <TextField
+                    id="alert-callsign"
+                    label="Callsign"
+                    helperText="e.g. W1AW"
+                    onChange={handleCallsign}
+                    sx={{ flex: '1 1 200px' }}
+                />
+                <TextField
+                    id="alert-location"
+                    label="Location"
+                    helperText="e.g. US-GA for POTA, W2 for SOTA"
+                    onChange={handleLocation}
+                    sx={{ flex: '1 1 200px' }}
+                />
+                <TextField
+                    id="alert-unit"
+                    label="Unit"
+                    helperText="e.g. K-1234 for POTA, W2/GA-123 for SOTA"
+                    onChange={handleUnit}
+                    sx={{ flex: '1 1 200px' }}
+                />
+            </div>
 
-            <TextField
-                required
-                id="alert-callsign"
-                label="Callsign"
-                helperText="Callsign to search for.  No wildcards currently supported."
-                onChange={handleCallsign}
-            />
-
-            <TextField
-                required
-                id="alert-unit"
-                label="Unit"
-                helperText="Specific place being activated.  e.g. K-1234 for POTA or W2/GA-123 for SOTA."
-                onChange={handleUnit}
-            />
-
-            <FormGroup>
-                <FormLabel component="legend">Programs</FormLabel>
+            <FormGroup row>
+                <FormLabel component="legend" sx={{ width: '100%' }}>Programs</FormLabel>
                 {
                     ALL_PROGRAMS.map((program) => <FormControlLabel key={program} label={program} control={<Checkbox onChange={handleProgramChange} name={program} />} />)
                 }
-
             </FormGroup>
 
-            <FormGroup>
-                <FormLabel component="legend">Modes</FormLabel>
+            <FormGroup row>
+                <FormLabel component="legend" sx={{ width: '100%' }}>Modes</FormLabel>
                 {
                     ALL_MODES.map((mode) => <FormControlLabel key={mode} label={mode} control={<Checkbox onChange={handleModeChange} name={mode} />} />)
                 }
-
             </FormGroup>
 
-            <FormGroup>
-                <FormLabel component="legend">Bands</FormLabel>
+            <FormGroup row>
+                <FormLabel component="legend" sx={{ width: '100%' }}>Bands</FormLabel>
                 {
                     ALL_BANDS.map((band) => <FormControlLabel key={band} label={band} control={<Checkbox onChange={handleBandChange} name={band} />} />)
                 }
-
             </FormGroup>
 
             <Button variant="contained"

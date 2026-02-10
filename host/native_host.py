@@ -3,9 +3,9 @@
 import sys
 import struct
 import json
+import apprise
 from rigctld_connection import RigctldConnection
 from gqrx_connection import GqrxConnection
-from pushover_api import PushoverApi
 
 ## Largely gleaned/copied/inspired from: https://github.com/SphinxKnight/webextensions-examples/blob/master/native-messaging/app/ping_pong.py
 
@@ -44,7 +44,7 @@ def get_rig_connection(rig_info):
     return rig_connection
 
 def send_alerts_notification(notify_alerts_message, log_file):
-    alerts = message.get("alerts") or []
+    alerts = notify_alerts_message.get("alerts") or []
 
     field_separator = ","
     alert_separator = " and "
@@ -61,10 +61,10 @@ def send_alerts_notification(notify_alerts_message, log_file):
 
             if value:
                 alert_text = alert_text + value + field_separator
-        
+
         if alert_text:
             message_body = message_body + alert_text[:-len(field_separator)] + alert_separator
-        
+
     if message_body:
         message_body = message_body[:-len(alert_separator)]
 
@@ -73,27 +73,26 @@ def send_alerts_notification(notify_alerts_message, log_file):
         log_file.write("\n")
 
         try:
-            push_configuration = {}
-
             with open("push_notification_settings.json") as settings_file:
                 push_configuration = json.load(settings_file) or {}
 
-            log_file.write(str(push_configuration))
-            log_file.write("\n")
+            urls = push_configuration.get("urls") or []
 
-            push_providers = push_configuration.get("providers") or []
+            if not urls:
+                log_file.write("No notification URLs configured\n")
+                return
 
-            for provider in push_providers:
-                api = None
+            notifier = apprise.Apprise()
 
-                if provider["api"] == "pushover":
-                    api = PushoverApi(provider)
+            for url in urls:
+                notifier.add(url)
 
-                if api:
-                    log_file.write(f"Found push configuration for {provider['api']}")
-                    log_file.write("\n")
+            log_file.write(f"Sending to {len(urls)} notification target(s)\n")
 
-                    api.send_notification(message_body)
+            notifier.notify(
+                title="Radio Control Alert",
+                body=message_body,
+            )
         except Exception as e:
             log_file.write(f"Exception: {e}\n")
 
@@ -112,6 +111,7 @@ def process_message(message):
                 rig_connection = get_rig_connection(message["rig"])
             except Exception as err:
                 log.write(f'Error creating connection: {err}\n')
+                send_message({"error": f"Failed to create rig connection: {err}"})
                 return
 
             log.write(f'connection prepared - {type(rig_connection)}\n')
@@ -124,24 +124,33 @@ def process_message(message):
             [mode_string, passband] = rig_connection.mode_passband_lookup(raw_mode, frequency)
 
             log.write(f'parsed: {frequency} {raw_mode}->{mode_string} {passband}\n')
-        
-            rig_connection.connect()
 
-            # Mode gets set first so that the frequency is set properly when switching
-            # to/from CW
-            result = rig_connection.set_mode(mode_string, passband)
-            log.write(f'rigctld: {mode_string} {passband} {result}\n')
+            try:
+                rig_connection.connect()
+            except Exception as err:
+                log.write(f'Error connecting to rig: {err}\n')
+                send_message({"error": f"Failed to connect to rig: {err}"})
+                return
 
-            result = rig_connection.set_frequency(frequency)
-            log.write(f'rigctld: {frequency} {result}\n')
+            try:
+                # Mode gets set first so that the frequency is set properly when switching
+                # to/from CW
+                result = rig_connection.set_mode(mode_string, passband)
+                log.write(f'rigctld: {mode_string} {passband} {result}\n')
 
-            result = rig_connection.get_radio_state()
+                result = rig_connection.set_frequency(frequency)
+                log.write(f'rigctld: {frequency} {result}\n')
 
-            log.write(f'Radio State: {result}')
+                result = rig_connection.get_radio_state()
 
-            rig_connection.disconnect()
+                log.write(f'Radio State: {result}')
 
-            send_message(result)
+                send_message(result)
+            except Exception as err:
+                log.write(f'Error sending commands to rig: {err}\n')
+                send_message({"error": f"Error communicating with rig: {err}"})
+            finally:
+                rig_connection.disconnect()
         elif message["type"] == "alerts":
             send_alerts_notification(message, log)
 

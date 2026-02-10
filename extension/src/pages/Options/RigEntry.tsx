@@ -67,8 +67,8 @@ const RigEntry = (props: any) => {
                     defaultValue={rigType}
                     onChange={handleRigType}
                 >
-                    <MenuItem value="{RigType.Rigctld}">Rigctld</MenuItem>
-                    <MenuItem value="{RigType.Gqrx}">Gqrx or legacy Rigctld</MenuItem>
+                    <MenuItem value={RigType.Rigctld}>Rigctld</MenuItem>
+                    <MenuItem value={RigType.Gqrx}>Gqrx or legacy Rigctld</MenuItem>
                 </Select>
             </FormControl>
 
